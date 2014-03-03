@@ -4,6 +4,9 @@ import urllib2
 import json
 import time
 import geojson
+import re
+
+G_RING_MATCHER = r'G-Ring_(Latitude|Longitude):\s*([-+]?\d*\.\d+|\d+)'
 
 CORNERS = {
            'NW': ('NW Corner Lat dec', 'NW Corner Long dec'), 
@@ -16,8 +19,9 @@ def readmetadatafdgc(url):
     mydict = {}
     f = urllib2.urlopen(url)
     content = f.read()
-    print content
-
+    mylist = re.findall(G_RING_MATCHER, content)
+    print mylist
+    
 def readmetadatatable(url):
     mydict = {}
     f = urllib2.urlopen(url)
