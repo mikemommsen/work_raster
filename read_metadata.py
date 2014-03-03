@@ -12,8 +12,13 @@ CORNERS = {
            'SW': ('SW Corner Lat dec', 'SW Corner Long dec')
            }
 
-def readmetadata(url):
-    t1 = time.time()
+def readmetadatafdgc(url):
+    mydict = {}
+    f = urllib2.urlopen(url)
+    content = f.read()
+    print content
+
+def readmetadatatable(url):
     mydict = {}
     f = urllib2.urlopen(url)
     content = f.read()
