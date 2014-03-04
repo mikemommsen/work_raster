@@ -7,12 +7,10 @@ import re
 
 G_RING_MATCHER = r'G-Ring_(Latitude|Longitude):\s*([-+]?\d*\.\d+|\d+)'
 
-CORNERS = {
-           'NW': ('NW Corner Lat dec', 'NW Corner Long dec'), 
+CORNERS = {'NW': ('NW Corner Lat dec', 'NW Corner Long dec'), 
            'NE': ('NE Corner Lat dec', 'NE Corner Long dec'), 
            'SE': ('SE Corner Lat dec', 'SE Corner Long dec'), 
-           'SW': ('SW Corner Lat dec', 'SW Corner Long dec')
-           }
+           'SW': ('SW Corner Lat dec', 'SW Corner Long dec')}
 
 def readcoordinatesfdgc(url):
     """reads a metadata fdgc table for a earthexplorer raster and returns the four corners.
