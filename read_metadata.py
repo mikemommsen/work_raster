@@ -69,7 +69,7 @@ def writegeojson(incoordinates, outfile):
         sys.exit(1)
         #maybe more things here to let people know the problem of not having geojson for python
     with open(outfile, 'w') as f:
-        geom = geojson.MultiPoint(incoordinates)
+        geom = geojson.MultiPoint([(y, x) for x, y in incoordinates])
         # we should check to see if indent causes any problems for programs parsers
         # but i dont thing that it should
         geojson.dump(geom, f, indent=4)
