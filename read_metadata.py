@@ -91,8 +91,9 @@ def writeshapefile(incoordinates, outfile):
             UNIT["degree", 0.017453292519943295], 
             AXIS["Longitude", EAST], 
             AXIS["Latitude", NORTH], 
-            AUTHORITY["EPSG","4326"]])"""
+            AUTHORITY["EPSG","4326"]])""")
     cur = arcpy.InsertCursor(outfile)
+    poly = 
 
 def main():
     url = sys.argv[1]
