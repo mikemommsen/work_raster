@@ -1,12 +1,20 @@
+# mike mommsen
+# march 2014
+
+# import parts of the standard library that are going to be used
+# this is my first time importing non standard modules in functions themselves, but it seems like a good idea
+
 import sys
 import urllib2
 import json
 import time
-import geojson
 import re
 
+
+# re to find the rinds g ring coords in fgdc metadata
 G_RING_MATCHER = r'G-Ring_(Latitude|Longitude):\s*([-+]?\d*\.\d+|\d+)'
 
+#the keys for the corners in the table metadata
 CORNERS = {'NW': ('NW Corner Lat dec', 'NW Corner Long dec'), 
            'NE': ('NE Corner Lat dec', 'NE Corner Long dec'), 
            'SE': ('SE Corner Lat dec', 'SE Corner Long dec'), 
