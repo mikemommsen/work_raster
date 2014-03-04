@@ -81,7 +81,8 @@ def writeshapefile(incoordinates, outfile, oid):
         sys.exit(1)
         #more details about not having arcpy, or an attempt to use shapefile, not a bad idea actually
     if not arcpy.exists(outfile):
-        arcpy.CreateFeatureclass_management(*os.path.split(outfile), "POLYGON", "", "", "", 
+        basepath, filename = os.path.split(outfile)
+        arcpy.CreateFeatureclass_management(basepath, filename, "POLYGON", "", "", "", 
         """GEOGCS["WGS 84", 
             DATUM["WGS_1984", 
             SPHEROID["WGS 84", 6378137.0, 298.257223563, AUTHORITY["EPSG","7030"]], 
@@ -120,7 +121,12 @@ def main():
     outpath = sys.argv[2]
     output = readcoordinatesfdgc(url)
     oid = findNextOid(outpath)
-    writeshapefile(output, outpath, oid)
+    outbasepath, outfile = os.path.split(outpath)
+    outfilename, outfileextension = os.path.splitext(outfile)
+    if outfileextension == '.shp':
+        writeshapefile(output, outpath, oid)
+    elif outfileextension in ['.json', '.geojson']:
+        writegeojson(output, outpath)
     print True
 
 if __name__ == '__main__':
