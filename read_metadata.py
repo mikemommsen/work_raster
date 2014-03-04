@@ -72,7 +72,8 @@ def writegeojson(incoordinates, outfile):
         # we should check to see if indent causes any problems for programs parsers
         # but i dont thing that it should
         goejson.dump(geom, indent=4)
-def writeshapefile(incoordinates outfile):
+        
+def writeshapefile(incoordinates, outfile):
     """"""
     try:
         import arcpy
@@ -80,6 +81,21 @@ def writeshapefile(incoordinates outfile):
         print e
         sys.exit(1)
         #more details about not having arcpy, or an attempt to use shapefile, not a bad idea actually
+    if not arcpy.exists(outfile):
+        arcpy.CreateFeatureclass_management(*os.path.split(outfile), "Polygon", "", "", "", 
+        """GEOGCS["WGS 84", 
+            DATUM["WGS_1984", 
+            SPHEROID["WGS 84", 6378137.0, 298.257223563, AUTHORITY["EPSG","7030"]], 
+            TOWGS84[0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0], 
+            AUTHORITY["EPSG","6326"]], 
+            PRIMEM["Greenwich", 0.0, AUTHORITY["EPSG","8901"]], 
+            UNIT["degree", 0.017453292519943295], 
+            AXIS["Longitude", EAST], 
+            AXIS["Latitude", NORTH], 
+            AUTHORITY["EPSG","4326"]])"""
+    cur = arcpy.InsertCursor(outfile)
+        
+    
     
 
 def main():
