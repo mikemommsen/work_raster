@@ -29,6 +29,8 @@ def readmetadatafdgc(url):
     return zip(Latitudes, Longitudes)
     
 def readmetadatatable(url):
+    """"""
+           
     mydict = {}
     f = urllib2.urlopen(url)
     content = f.read()
