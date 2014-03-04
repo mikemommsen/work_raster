@@ -72,7 +72,7 @@ def writegeojson(incoordinates, outfile):
         # but i dont thing that it should
         goejson.dump(geom, indent=4)
         
-def writeshapefile(incoordinates, outfile):
+def writeshapefile(incoordinates, outfile, oid):
     """"""
     try:
         import arcpy
@@ -81,7 +81,7 @@ def writeshapefile(incoordinates, outfile):
         sys.exit(1)
         #more details about not having arcpy, or an attempt to use shapefile, not a bad idea actually
     if not arcpy.exists(outfile):
-        arcpy.CreateFeatureclass_management(*os.path.split(outfile), "Polygon", "", "", "", 
+        arcpy.CreateFeatureclass_management(*os.path.split(outfile), "POLYGON", "", "", "", 
         """GEOGCS["WGS 84", 
             DATUM["WGS_1984", 
             SPHEROID["WGS 84", 6378137.0, 298.257223563, AUTHORITY["EPSG","7030"]], 
@@ -93,7 +93,10 @@ def writeshapefile(incoordinates, outfile):
             AXIS["Latitude", NORTH], 
             AUTHORITY["EPSG","4326"]])""")
     cur = arcpy.InsertCursor(outfile)
-    poly = 
+    newrow = cur.NewRow()
+    newrow.id = oid
+    arrorObj = arcpy.Array()
+    newrow.shape = arrayObj
 
 def main():
     url = sys.argv[1]
