@@ -120,10 +120,10 @@ def main():
     url = sys.argv[1]
     outpath = sys.argv[2]
     output = readcoordinatesfdgc(url)
-    oid = findNextOid(outpath)
     outbasepath, outfile = os.path.split(outpath)
     outfilename, outfileextension = os.path.splitext(outfile)
     if outfileextension == '.shp':
+        oid = findNextOid(outpath)
         writeshapefile(output, outpath, oid)
     elif outfileextension in ['.json', '.geojson']:
         writegeojson(output, outpath)
