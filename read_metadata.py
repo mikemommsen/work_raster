@@ -96,11 +96,12 @@ def writeshapefile(incoordinates, outfile, oid):
     newrow = cur.NewRow()
     newrow.id = oid
     arrayObj = arcpy.Array()
+    pnt = arcpy.Point()
     for lat, lon in incoordinates:
-        pnt = arcpy.Point()
         pnt.X, pnt.Y = lon, lat # check to make sure that this is right
         arrayObj.add(pnt)
-    newrow.shape = arrayObj
+    poly = arcpy.Polygon(arrayObj)
+    newrow.shape = poly
 
 def main():
     url = sys.argv[1]
