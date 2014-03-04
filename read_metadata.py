@@ -114,13 +114,14 @@ def findNextOid(infeature):
         mylist.append(r.id)
     del r, cur
     return max(mylist) + 1
-           
-
+    
 def main():
     url = sys.argv[1]
     outpath = sys.argv[2]
     output = readcoordinatesfdgc(url)
-    print output
+    oid = findNextOid(outpath)
+    writeshapefile(output, outpath, oid)
+    print True
 
 if __name__ == '__main__':
     main()
