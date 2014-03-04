@@ -43,19 +43,19 @@ def readmetadatatable(url):
             mydict[key] = value
     return mydict
 
-def createoutput(indict):
+def readcoordinatestable(url):
+    """takes a url and returns the coordinates of the corners"""
+    indict = readmetadatatable(url)
     mylist = []
     for corner, coords in CORNERS.iteritems():
         lat, lon = [float(indict[x]) for x in coords]
-        mylist.append((lon,lat))
-    multi = geojson.MultiPoint(mylist)
-    return multi
+        mylist.append((lat,lon))
+    return mylist
 
 def main():
     url = sys.argv[1]
     outpath = sys.argv[2]
-    mydict = readmetadata(url)
-    output = createoutput(mydict)
+    output = createoutput(url)
     print output
 
 if __name__ == '__main__':
