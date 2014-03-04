@@ -1,5 +1,4 @@
 import sys
-from bs4 import BeautifulSoup
 import urllib2
 import json
 import time
@@ -15,7 +14,7 @@ CORNERS = {
            'SW': ('SW Corner Lat dec', 'SW Corner Long dec')
            }
 
-def readmetadatafdgc(url):
+def readcoordinatesfdgc(url):
     """reads a metadata fdgc table for a earthexplorer raster and returns the four corners.
     the format for the points right now is a list with four tuples of latitude and longitude in decimal degrees.
     a more logical way would be a point from a program that can be written in wkt, wkb, geojson etc
@@ -29,8 +28,12 @@ def readmetadatafdgc(url):
     return zip(Latitudes, Longitudes)
     
 def readmetadatatable(url):
-    """"""
-           
+    """takes a url to an earthexplorer table metadata file and returns the metadata in a  dictionary"""
+    try:
+        from bs4 import BeautifulSoup
+    except ImportError as e:
+        print e
+        sys.exit(1)
     mydict = {}
     f = urllib2.urlopen(url)
     content = f.read()
