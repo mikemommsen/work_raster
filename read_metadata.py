@@ -29,8 +29,8 @@ def readcoordinatesfdgc(url):
     content = f.read()
     mylist = re.findall(G_RING_MATCHER, content)
     print mylist
-    Latitudes = [y for x, y in mylist if x == 'Latitude']
-    Longitudes = [y for x, y in mylist if x == 'Longitude']
+    Latitudes = [float(y) for x, y in mylist if x == 'Latitude']
+    Longitudes = [float(y) for x, y in mylist if x == 'Longitude']
     return zip(Latitudes, Longitudes)
     
 def readmetadatatable(url):
