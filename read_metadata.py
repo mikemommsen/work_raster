@@ -27,8 +27,8 @@ def readcoordinatesfdgc(url):
     f = urllib2.urlopen(url)
     content = f.read()
     mylist = re.findall(G_RING_MATCHER, content)
-    Latitudes = [y for x, y in mylist if y = 'Latitude']
-    Longitudes = [y for x, y in mylist if y = 'Longitude']
+    Latitudes = [y for x, y in mylist if y == 'Latitude']
+    Longitudes = [y for x, y in mylist if y == 'Longitude']
     return zip(Latitudes, Longitudes)
     
 def readmetadatatable(url):
