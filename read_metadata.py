@@ -55,7 +55,7 @@ def readcoordinatestable(url):
 def main():
     url = sys.argv[1]
     outpath = sys.argv[2]
-    output = createoutput(url)
+    output = readcoordinatesfdgc(url)
     print output
 
 if __name__ == '__main__':
