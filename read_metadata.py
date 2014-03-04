@@ -3,7 +3,6 @@
 
 # import parts of the standard library that are going to be used
 # this is my first time importing non standard modules in functions themselves, but it seems like a good idea
-
 import sys
 import urllib2
 import json
