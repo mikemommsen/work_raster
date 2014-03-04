@@ -14,16 +14,16 @@ import os
 G_RING_MATCHER = r'G-Ring_(Latitude|Longitude):\s*([-+]?\d*\.\d+|\d+)'
 
 #the keys for the corners in the table metadata
-CORNERS = {'NW': ('NW Corner Lat dec', 'NW Corner Long dec'), 
-           'NE': ('NE Corner Lat dec', 'NE Corner Long dec'), 
-           'SE': ('SE Corner Lat dec', 'SE Corner Long dec'), 
+CORNERS = {'NW': ('NW Corner Lat dec', 'NW Corner Long dec'),
+           'NE': ('NE Corner Lat dec', 'NE Corner Long dec'),
+           'SE': ('SE Corner Lat dec', 'SE Corner Long dec'),
            'SW': ('SW Corner Lat dec', 'SW Corner Long dec')}
 
 def readcoordinatesfdgc(url):
     """reads a metadata fdgc table for a earthexplorer raster and returns the four corners.
-    the format for the points right now is a list with four tuples of latitude and longitude in decimal degrees.
-    a more logical way would be a point from a program that can be written in wkt, wkb, geojson etc
-    maybe we can find something for that"""
+the format for the points right now is a list with four tuples of latitude and longitude in decimal degrees.
+a more logical way would be a point from a program that can be written in wkt, wkb, geojson etc
+maybe we can find something for that"""
     mydict = {}
     f = urllib2.urlopen(url)
     content = f.read()
@@ -34,7 +34,7 @@ def readcoordinatesfdgc(url):
     return zip(Latitudes, Longitudes)
     
 def readmetadatatable(url):
-    """takes a url to an earthexplorer table metadata file and returns the metadata in a  dictionary"""
+    """takes a url to an earthexplorer table metadata file and returns the metadata in a dictionary"""
     try:
         from bs4 import BeautifulSoup
     except ImportError as e:
@@ -82,21 +82,21 @@ def writeshapefile(incoordinates, outfile, oid):
         print e
         sys.exit(1)
         #more details about not having arcpy, or an attempt to use shapefile, not a bad idea actually
-    if not arcpy.exists(outfile):
+    if not arcpy.Exists(outfile):
         basepath, filename = os.path.split(outfile)
-        arcpy.CreateFeatureclass_management(basepath, filename, "POLYGON", "", "", "", 
-        """GEOGCS["WGS 84", 
-            DATUM["WGS_1984", 
-            SPHEROID["WGS 84", 6378137.0, 298.257223563, AUTHORITY["EPSG","7030"]], 
-            TOWGS84[0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0], 
-            AUTHORITY["EPSG","6326"]], 
-            PRIMEM["Greenwich", 0.0, AUTHORITY["EPSG","8901"]], 
-            UNIT["degree", 0.017453292519943295], 
-            AXIS["Longitude", EAST], 
-            AXIS["Latitude", NORTH], 
-            AUTHORITY["EPSG","4326"]])""")
+        arcpy.CreateFeatureclass_management(basepath, filename, "POLYGON", "", "", "",
+        """GEOGCS["WGS 84",
+DATUM["WGS_1984",
+SPHEROID["WGS 84", 6378137.0, 298.257223563, AUTHORITY["EPSG","7030"]],
+TOWGS84[0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+AUTHORITY["EPSG","6326"]],
+PRIMEM["Greenwich", 0.0, AUTHORITY["EPSG","8901"]],
+UNIT["degree", 0.017453292519943295],
+AXIS["Longitude", EAST],
+AXIS["Latitude", NORTH],
+AUTHORITY["EPSG","4326"]])""")
     cur = arcpy.InsertCursor(outfile)
-    newrow = cur.NewRow()
+    newrow = cur.newRow()
     newrow.id = oid
     arrayObj = arcpy.Array()
     pnt = arcpy.Point()
@@ -104,18 +104,21 @@ def writeshapefile(incoordinates, outfile, oid):
         pnt.X, pnt.Y = lon, lat # check to make sure that this is right
         arrayObj.add(pnt)
     poly = arcpy.Polygon(arrayObj)
-    newrow.shape = poly
-    cur.InsertRow(newrow)
+    newrow.shape = arrayObj
+    arcpy.AddMessage(str(arrayObj))
+    cur.insertRow(newrow)
     del newrow, cur
-    return True 
+    return True
     
 def findNextOid(infeature):
     """takes an infeature, finds the maximum oid, and returns a number one higher."""
     cur = arcpy.SearchCursor(infeature)
-    mylist = []
+    mylist = [0]
     for r in cur:
         mylist.append(r.id)
-    del r, cur
+    if 'r' in vars().keys():
+        del r
+    del cur
     return max(mylist) + 1
     
 def main():
@@ -134,4 +137,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-
