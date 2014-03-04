@@ -102,6 +102,9 @@ def writeshapefile(incoordinates, outfile, oid):
         arrayObj.add(pnt)
     poly = arcpy.Polygon(arrayObj)
     newrow.shape = poly
+    cur.InsertRow(newrow)
+    del newrow, cur
+    return True 
 
 def main():
     url = sys.argv[1]
