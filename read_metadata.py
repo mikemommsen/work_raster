@@ -95,7 +95,11 @@ def writeshapefile(incoordinates, outfile, oid):
     cur = arcpy.InsertCursor(outfile)
     newrow = cur.NewRow()
     newrow.id = oid
-    arrorObj = arcpy.Array()
+    arrayObj = arcpy.Array()
+    for lat, lon in incoordinates:
+        pnt = arcpy.Point()
+        pnt.X, pnt.Y = lon, lat # check to make sure that this is right
+        arrayObj.add(pnt)
     newrow.shape = arrayObj
 
 def main():
