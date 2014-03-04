@@ -16,11 +16,17 @@ CORNERS = {
            }
 
 def readmetadatafdgc(url):
+    """reads a metadata fdgc table for a earthexplorer raster and returns the four corners.
+    the format for the points right now is a list with four tuples of latitude and longitude in decimal degrees.
+    a more logical way would be a point from a program that can be written in wkt, wkb, geojson etc
+    maybe we can find something for that"""
     mydict = {}
     f = urllib2.urlopen(url)
     content = f.read()
     mylist = re.findall(G_RING_MATCHER, content)
-    print mylist
+    Latitudes = [y for x, y in mylist if y = 'Latitude']
+    Longitudes = [y for x, y in mylist if y = 'Longitude']
+    return zip(Latitudes, Longitudes)
     
 def readmetadatatable(url):
     mydict = {}
