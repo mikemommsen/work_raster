@@ -105,6 +105,16 @@ def writeshapefile(incoordinates, outfile, oid):
     cur.InsertRow(newrow)
     del newrow, cur
     return True 
+    
+def findNextOid(infeature):
+    """takes an infeature, finds the maximum oid, and returns a number one higher."""
+    cur = arcpy.SearchCursor(infeature)
+    mylist = []
+    for r in cur:
+        mylist.append(r.id)
+    del r, cur
+    return max(mylist) + 1
+           
 
 def main():
     url = sys.argv[1]
