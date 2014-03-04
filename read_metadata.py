@@ -71,7 +71,7 @@ def writegeojson(incoordinates, outfile):
         geom = geojson.MultiPoint(incoordinates)
         # we should check to see if indent causes any problems for programs parsers
         # but i dont thing that it should
-        goejson.dump(geom, indent=4)
+        geojson.dump(geom, indent=4)
         
 def writeshapefile(incoordinates, outfile, oid):
     """"""
