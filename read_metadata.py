@@ -10,7 +10,6 @@ import json
 import time
 import re
 
-
 # re to find the rinds g ring coords in fgdc metadata
 G_RING_MATCHER = r'G-Ring_(Latitude|Longitude):\s*([-+]?\d*\.\d+|\d+)'
 
@@ -60,7 +59,7 @@ def readcoordinatestable(url):
         mylist.append((lat,lon))
     return mylist
     
-def writegeojson(incoordinates):
+def writegeojson(incoordinates, outfile):
     """"""
     try:
         import geojson
@@ -68,9 +67,12 @@ def writegeojson(incoordinates):
         print e
         sys.exit(1)
         #maybe more things here to let people know the problem of not having geojson for python
-    return geojson.MultiPoint(incoordinates)
-    
-def writeshapefile(incoordinates):
+    with open(outfile, 'w') as f:
+        geom = geojson.MultiPoint(incoordinates)
+        # we should check to see if indent causes any problems for programs parsers
+        # but i dont thing that it should
+        goejson.dump(geom, indent=4)
+def writeshapefile(incoordinates outfile):
     """"""
     try:
         import arcpy
