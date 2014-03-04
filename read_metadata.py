@@ -51,6 +51,26 @@ def readcoordinatestable(url):
         lat, lon = [float(indict[x]) for x in coords]
         mylist.append((lat,lon))
     return mylist
+    
+def writegeojson(incoordinates):
+    """"""
+    try:
+        import geojson
+    except ImportError as e:
+        print e
+        sys.exit(1)
+        #maybe more things here to let people know the problem of not having geojson for python
+    return geojson.MultiPoint(incoordinates)
+    
+def writeshapefile(incoordinates):
+    """"""
+    try:
+        import arcpy
+    except ImportError as e:
+        print e
+        sys.exit(1)
+        #more details about not having arcpy, or an attempt to use shapefile, not a bad idea actually
+    
 
 def main():
     url = sys.argv[1]
