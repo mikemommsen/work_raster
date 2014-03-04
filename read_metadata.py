@@ -28,8 +28,9 @@ def readcoordinatesfdgc(url):
     f = urllib2.urlopen(url)
     content = f.read()
     mylist = re.findall(G_RING_MATCHER, content)
-    Latitudes = [y for x, y in mylist if y == 'Latitude']
-    Longitudes = [y for x, y in mylist if y == 'Longitude']
+    print mylist
+    Latitudes = [y for x, y in mylist if x == 'Latitude']
+    Longitudes = [y for x, y in mylist if x == 'Longitude']
     return zip(Latitudes, Longitudes)
     
 def readmetadatatable(url):
@@ -121,6 +122,7 @@ def main():
     url = sys.argv[1]
     outpath = sys.argv[2]
     output = readcoordinatesfdgc(url)
+    print output
     outbasepath, outfile = os.path.split(outpath)
     outfilename, outfileextension = os.path.splitext(outfile)
     if outfileextension == '.shp':
