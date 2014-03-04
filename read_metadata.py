@@ -8,6 +8,7 @@ import urllib2
 import json
 import time
 import re
+import os
 
 # re to find the rinds g ring coords in fgdc metadata
 G_RING_MATCHER = r'G-Ring_(Latitude|Longitude):\s*([-+]?\d*\.\d+|\d+)'
