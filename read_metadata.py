@@ -195,9 +195,8 @@ def getsize(inraster):
     
 def getutmzone(longitude):
     """takes a wgs84 longitude and returns the utm zone"""
-    return 30 +((longitude + (longitude % 6)) / 6)
+    return 30 - int(lon * -1) / 6
 
-    
 def createworldfile(coordinates, pixels, rows):
     
     
