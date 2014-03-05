@@ -1,6 +1,7 @@
 # mike mommsen
 # march 2014
 
+
 # import parts of the standard library that are going to be used
 # this is my first time importing non standard modules in functions themselves, but it seems like a good idea
 import sys
@@ -74,6 +75,7 @@ def readmetadatacsv(infile):
     return mydict
     
 def readcoordinatescsv(indict):
+    """"""
     mylist = []
     for corner in ['NW', 'NE', 'SE', 'SW']:
         lat, lon = CORNERS[corner]
@@ -121,6 +123,7 @@ def writegeojson(incoordinates, outfile):
         geojson.dump(geom, f, indent=4)
         
 def createnewshapefile(basepath, filename):
+    """"""
     feature = arcpy.CreateFeatureclass_management(basepath, filename, "POLYGON", "", "", "",
         """GEOGCS["WGS 84",
         DATUM["WGS_1984",
@@ -164,8 +167,8 @@ def writeshapefile(incoordinates, outfile, field_data):
     del newrow, cur
     return True
     
-    
 def filterdata(datadict, fielddict):
+    """"""
     mydict = {v: datadict.get(k, 'NULL') for k, v in fielddict.iteritems()}
     return mydict
     
@@ -181,9 +184,9 @@ def findNextOid(infeature):
     return max(mylist) + 1
     
 def main():
+    """"""
     url = sys.argv[1]
     outpath = sys.argv[2]
-    #coordinates = readcoordinatesfdgc(url)
     alldata = readmetadatatable(url)
     # this could be dumped into the geojson properties or attributes or whatever they call it in geojson
     field_data = filterdata(alldata, FIELDS)
