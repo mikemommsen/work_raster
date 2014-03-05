@@ -23,6 +23,7 @@ CORNERS = OrderedDict({'NW': ('NW Corner Lat dec', 'NW Corner Long dec'),
            'SW': ('SW Corner Lat dec', 'SW Corner Long dec')})
            
 # list of the fields that i think would be nice in the output
+# this is a dictionary with the key being the name that is in the metadata and the value the name that is shapefile safe
 FIELDS = OrderedDict({'Entity  ID':'title', 
           'Agency':'Agency', 
           'Recording Technique':'rec_tech', 
@@ -41,7 +42,9 @@ FIELDS = OrderedDict({'Entity  ID':'title',
           'Stereo Overlap':'overlap'})
            
 def readmetadatafgdc(url):
-    """"""
+    """reads the fgdc metadata - not sure if this is going to be used very much
+    also consider the fact that other people probably already have parsers that actually work for fgdc
+    arc even parses it, so we should not be bootlegging it"""
     mydict = {}
     f = urllib2.urlopen(url)
     content = f.read()
@@ -65,28 +68,13 @@ maybe we can find something for that"""
     Latitudes = [float(y) for x, y in mylist if x == 'Latitude']
     Longitudes = [float(y) for x, y in mylist if x == 'Longitude']
     return zip(Latitudes, Longitudes)
-   
-def readmetadatacsv(infile):
-    """i dont have bs4 at work right now so i am downloading metadata and parsing it as a csv.
-    this serves no other purpose outside of testing"""
-    with open(infile) as f:
-        reader = csv.reader(f)
-        mydict = {k: v for k, v in reader}
-    return mydict
-    
-def readcoordinatescsv(indict):
-    """"""
-    mylist = []
-    for corner in ['NW', 'NE', 'SE', 'SW']:
-        lat, lon = CORNERS[corner]
-        mylist.append((float(indict[lat]), float(indict[lon])))
-    return mylist
     
 def readmetadatatable(url):
     """takes a url to an earthexplorer table metadata file and returns the metadata in a dictionary"""
     try:
         from bs4 import BeautifulSoup
     except ImportError as e:
+        # maybe put in some info here for people so they know they need bs4
         print e
         sys.exit(1)
     mydict = {}
@@ -109,7 +97,10 @@ def readcoordinatestable(indict):
     return mylist
     
 def writegeojson(incoordinates, outfile):
-    """"""
+    """takse coordinates and writes them to an outfile"""
+    # there is still a decent amount of work to do on this
+    # do we want it to be points, polys, or something else
+    # also if the file exists we probably want to append and not write over the old file
     try:
         import geojson
     except ImportError as e:
@@ -123,7 +114,8 @@ def writegeojson(incoordinates, outfile):
         geojson.dump(geom, f, indent=4)
         
 def createnewshapefile(basepath, filename):
-    """"""
+    """takes a path and name and creates a new featureclass.
+    although not explicityle required to be a shapefile that is the general goal here"""
     feature = arcpy.CreateFeatureclass_management(basepath, filename, "POLYGON", "", "", "",
         """GEOGCS["WGS 84",
         DATUM["WGS_1984",
@@ -135,22 +127,29 @@ def createnewshapefile(basepath, filename):
         AXIS["Longitude", EAST],
         AXIS["Latitude", NORTH],
         AUTHORITY["EPSG","4326"]])""")
+    # add the fields
+    # there is probably a better way to specify fields for a new shapefile than adding them one at a time huh?
     for field in FIELDS.values():
         arcpy.AddField_management(feature, field, "TEXT")
         
 def writeshapefile(incoordinates, outfile, field_data):
-    """"""
+    """takes coordinates and field_data and writes to the outfile"""
     try:
         import arcpy
     except ImportError as e:
+        # could include some more details about person not having arcpy on their computer
         print e
         sys.exit(1)
+    # if the file does not exist then we have to make it 
     if not arcpy.Exists(outfile):
         basepath, filename = os.path.split(outfile)
         createnewshapefile(basepath, filename)
         oid = 1
+    # if the file does exist find the next availible oid
     else:
         oid = findNextOid(outfile)
+    # start up a cursor - this makes me think that we should make this something that can be bulk loaded with a list of coordinates
+    # all of this stuff for adding a feature to a featureclass is all from arcpy documentation on cursors so more can be found there
     cur = arcpy.InsertCursor(outfile)
     newrow = cur.newRow()
     newrow.id = oid
@@ -164,11 +163,13 @@ def writeshapefile(incoordinates, outfile, field_data):
     for key, value in field_data.iteritems():
         newrow.setValue(key, value)
     cur.insertRow(newrow)
+    # should we have a try here, because if it fails we will probably destroy the feature class
     del newrow, cur
+    # probably dont need to return anything here huh?
     return True
     
 def filterdata(datadict, fielddict):
-    """"""
+    """takes a datadict and returns the values that have keys in the fielddict along with the value from the fielddict"""
     mydict = {v: datadict.get(k, 'NULL') for k, v in fielddict.iteritems()}
     return mydict
     
