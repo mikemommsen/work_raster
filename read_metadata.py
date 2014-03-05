@@ -124,17 +124,19 @@ def createnewshapefile(basepath, filename):
     for field in FIELDS:
         arcpy.AddField_management(feature, field, "TEXT")
         
-def writeshapefile(incoordinates, outfile, oid, field_data):
+def writeshapefile(incoordinates, outfile, field_data):
     """"""
     try:
         import arcpy
     except ImportError as e:
         print e
         sys.exit(1)
-        #more details about not having arcpy, or an attempt to use shapefile, not a bad idea actually
     if not arcpy.Exists(outfile):
         basepath, filename = os.path.split(outfile)
         createnewshapefile(basepath, filename)
+        oid = 1
+    else:
+        oid = findNextOid(outfile)
     cur = arcpy.InsertCursor(outfile)
     newrow = cur.newRow()
     newrow.id = oid
@@ -177,9 +179,7 @@ def main():
     outbasepath, outfile = os.path.split(outpath)
     outfilename, outfileextension = os.path.splitext(outfile)
     if outfileextension == '.shp':
-        # not sure if we even need to make a new oid, or if we can go about this in some other way
-        oid = findNextOid(outpath)
-        writeshapefile(coordinates, outpath, oid, field_data)
+        writeshapefile(coordinates, outpath, field_data)
     elif outfileextension in ['.json', '.geojson']:
         writegeojson(coordinates, outpath)
     print True
