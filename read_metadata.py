@@ -22,11 +22,22 @@ CORNERS = OrderedDict({'NW': ('NW Corner Lat dec', 'NW Corner Long dec'),
            'SW': ('SW Corner Lat dec', 'SW Corner Long dec')})
            
 # list of the fields that i think would be nice in the output
-FIELDS = ['Entity ID', 'Agency', 'Recording Technique', 
-          'Project', 'Roll', 'Frame', 'Acquisition Date', 
-          'Scale',  'Image Type', 'Quality', 'Cloud Cover', 
-          'Photo ID', 'Flying Height in Feet', 'Film Length and Width',
-          'Focal Length', 'Stereo Overlap']
+FIELDS = OrderedDict({'Entity ID':'title', 
+          'Agency':'Agency', 
+          'Recording Technique':'rec_tech', 
+          'Project':'Project', 
+          'Roll': 'Roll', 
+          'Frame': 'Frame', 
+          'Acquisition Date':'Acqdate', 
+          'Scale':'scale',  
+          'Image Type':'imgtype', 
+          'Quality':'Quality', 
+          'Cloud Cover':'cloudcover', 
+          'Photo ID':'photoid', 
+          'Flying Height in Feet':'heightFt', 
+          'Film Length and Width':'filmsize',
+          'Focal Length':'focallen', 
+          'Stereo Overlap':'overlap'})
            
 def readmetadatafgdc(url):
     """"""
@@ -121,7 +132,7 @@ def createnewshapefile(basepath, filename):
         AXIS["Longitude", EAST],
         AXIS["Latitude", NORTH],
         AUTHORITY["EPSG","4326"]])""")
-    for field in FIELDS:
+    for field in FIELDS.values():
         arcpy.AddField_management(feature, field, "TEXT")
         
 def writeshapefile(incoordinates, outfile, field_data):
@@ -153,9 +164,10 @@ def writeshapefile(incoordinates, outfile, field_data):
     del newrow, cur
     return True
     
-def filterdict(indict, inlist):
-    """takes a dict and returns the a new dict with the keys that are in the list"""
-    return {k: v for k, v in indict.iteritems() if k in inlist}
+    
+def filterdata(datadict, fielddict):
+    mydict = {v: datadict[k] for k, v in fielddict}
+    return mydict
     
 def findNextOid(infeature):
     """takes an infeature, finds the maximum oid, and returns a number one higher."""
@@ -172,9 +184,9 @@ def main():
     url = sys.argv[1]
     outpath = sys.argv[2]
     #coordinates = readcoordinatesfdgc(url)
-    alldata = readmetadatacsv(infile)
+    alldata = readmetadatacsv(url)
     # this could be dumped into the geojson properties or attributes or whatever they call it in geojson
-    field_data = filterdict(alldata, FIELDS)
+    field_data = filterdata(alldata, FIELDS)
     coordinates = readcoordinatescsv(alldata)
     outbasepath, outfile = os.path.split(outpath)
     outfilename, outfileextension = os.path.splitext(outfile)
