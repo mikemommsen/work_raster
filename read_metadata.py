@@ -117,7 +117,7 @@ def createnewshapefile(basepath, filename):
     for field in FIELDS:
         arcpy.AddField_management(feature, field, "TEXT")
         
-def writeshapefile(incoordinates, outfile, oid):
+def writeshapefile(incoordinates, outfile, oid, field_data):
     """"""
     try:
         import arcpy
@@ -134,14 +134,19 @@ def writeshapefile(incoordinates, outfile, oid):
     arrayObj = arcpy.Array()
     pnt = arcpy.Point()
     for lat, lon in incoordinates:
-        pnt.X, pnt.Y = lon, lat # check to make sure that this is right
+        pnt.X, pnt.Y = lon, lat 
         arrayObj.add(pnt)
     poly = arcpy.Polygon(arrayObj)
     newrow.shape = arrayObj
-    arcpy.AddMessage(str(arrayObj))
+    for key, value in field_data:
+        newrow.setValue(key, value)
     cur.insertRow(newrow)
     del newrow, cur
     return True
+    
+def filterdict(indict, inlist):
+    """takes a dict and returns the a new dict with the keys that are in the list"""
+    return {k: v for k, v in indict if k in inlist}
     
 def findNextOid(infeature):
     """takes an infeature, finds the maximum oid, and returns a number one higher."""
