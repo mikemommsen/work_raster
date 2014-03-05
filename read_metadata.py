@@ -13,11 +13,23 @@ import os
 # re to find the rinds g ring coords in fgdc metadata
 G_RING_MATCHER = r'G-Ring_(Latitude|Longitude):\s*([-+]?\d*\.\d+|\d+)'
 
+
 #the keys for the corners in the table metadata
 CORNERS = {'NW': ('NW Corner Lat dec', 'NW Corner Long dec'),
            'NE': ('NE Corner Lat dec', 'NE Corner Long dec'),
            'SE': ('SE Corner Lat dec', 'SE Corner Long dec'),
            'SW': ('SW Corner Lat dec', 'SW Corner Long dec')}
+           
+def readmetadatafgdc(url):
+    mydict = {}
+    f = urllib2.urlopen(url)
+    content = f.read()
+    for row in content.split('\n'):
+        if row.count(':') == 1:
+            key, val = row.strip(' ').split(':')
+            if key and val:
+                mydict[key] = val
+    print json.dump(mydict, indent=4)
 
 def readcoordinatesfdgc(url):
     """reads a metadata fdgc table for a earthexplorer raster and returns the four corners.
