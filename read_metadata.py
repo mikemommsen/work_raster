@@ -75,7 +75,8 @@ def readmetadatacsv(infile):
     
 def readcoordinatescsv(indict):
     mylist = []
-    for lat, lon in CORNERS.values():
+    for corner in ['NW', 'NE', 'SE', 'SW']:
+        lat, lon = CORNERS[corner]
         mylist.append((float(indict[lat]), float(indict[lon])))
     return mylist
     
