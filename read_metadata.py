@@ -20,7 +20,6 @@ CORNERS = OrderedDict({'NW': ('NW Corner Lat dec', 'NW Corner Long dec'),
            'SE': ('SE Corner Lat dec', 'SE Corner Long dec'),
            'SW': ('SW Corner Lat dec', 'SW Corner Long dec')})
            
-           
 # list of the fields that i think would be nice in the output
 FIELDS = ['Entity ID', 'Agency', 'Recording Technique', 
           'Project', 'Roll', 'Frame', 'Acquisition Date', 
@@ -63,9 +62,10 @@ def readmetadatacsv(infile):
     return mydict
     
 def readcoordinatescsv(indict):
+    mylist = []
     for lat, lon in CORNERS.values():
-        mylist.append(indict[],indict[])
-    return
+        mylist.append(float(indict[lat]), float(indict[lon]))
+    return mylist
     
 def readmetadatatable(url):
     """takes a url to an earthexplorer table metadata file and returns the metadata in a dictionary"""
@@ -170,14 +170,15 @@ def main():
     outpath = sys.argv[2]
     #coordinates = readcoordinatesfdgc(url)
     alldata = readmetadatacsv(infile)
+    # this could be dumped into the geojson properties or attributes or whatever they call it in geojson
     field_data = filterdict(alldata, FIELDS)
-    
-    print output
+    coordinates = readcoordinatescsv(alldata)
     outbasepath, outfile = os.path.split(outpath)
     outfilename, outfileextension = os.path.splitext(outfile)
     if outfileextension == '.shp':
+        # not sure if we even need to make a new oid, or if we can go about this in some other way
         oid = findNextOid(outpath)
-        writeshapefile(coordinates, outpath, oid)
+        writeshapefile(coordinates, outpath, oid, field_data)
     elif outfileextension in ['.json', '.geojson']:
         writegeojson(coordinates, outpath)
     print True
