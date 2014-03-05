@@ -9,6 +9,7 @@ import json
 import time
 import re
 import os
+import csv
 from collections import OrderedDict
 
 # re to find the rinds g ring coords in fgdc metadata
