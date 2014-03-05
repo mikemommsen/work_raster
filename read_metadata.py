@@ -158,7 +158,7 @@ def writeshapefile(incoordinates, outfile, field_data):
         arrayObj.add(pnt)
     poly = arcpy.Polygon(arrayObj)
     newrow.shape = arrayObj
-    for key, value in field_data:
+    for key, value in field_data.iteritems():
         newrow.setValue(key, value)
     cur.insertRow(newrow)
     del newrow, cur
