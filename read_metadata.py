@@ -184,6 +184,23 @@ def findNextOid(infeature):
     del cur
     return max(mylist) + 1
     
+def getsize(inraster):
+    """this gets the size of the raster using PIL"""
+    # is PIL part of the standard library?
+    # if so we can move this import up to the top
+    from PIL import Image
+    i = image.open(inraster)
+    width, height = i.size
+    return width, height
+    
+def getutmzone(longitude):
+    """takes a wgs84 longitude and returns the utm zone"""
+    utms = range(-180, 180, 6)
+
+    
+def createworldfile(coordinates, pixels, rows):
+    
+    
 def main():
     """"""
     url = sys.argv[1]
