@@ -98,9 +98,8 @@ def readmetadatatable(url):
             mydict[key] = value
     return mydict
 
-def readcoordinatestable(url):
+def readcoordinatestable(indict):
     """takes a url and returns the coordinates of the corners"""
-    indict = readmetadatatable(url)
     mylist = []
     for corner, coords in CORNERS.iteritems():
         lat, lon = [float(indict[x]) for x in coords]
@@ -185,7 +184,7 @@ def main():
     url = sys.argv[1]
     outpath = sys.argv[2]
     #coordinates = readcoordinatesfdgc(url)
-    alldata = readmetadatacsv(url)
+    alldata = readmetadatatable(url)
     # this could be dumped into the geojson properties or attributes or whatever they call it in geojson
     field_data = filterdata(alldata, FIELDS)
     coordinates = readcoordinatescsv(alldata)
