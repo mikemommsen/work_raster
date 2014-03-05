@@ -153,7 +153,7 @@ def writeshapefile(incoordinates, outfile, oid, field_data):
     
 def filterdict(indict, inlist):
     """takes a dict and returns the a new dict with the keys that are in the list"""
-    return {k: v for k, v in indict if k in inlist}
+    return {k: v for k, v in indict.iteritems() if k in inlist}
     
 def findNextOid(infeature):
     """takes an infeature, finds the maximum oid, and returns a number one higher."""
