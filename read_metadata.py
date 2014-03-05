@@ -19,7 +19,16 @@ CORNERS = {'NW': ('NW Corner Lat dec', 'NW Corner Long dec'),
            'SE': ('SE Corner Lat dec', 'SE Corner Long dec'),
            'SW': ('SW Corner Lat dec', 'SW Corner Long dec')}
            
+           
+# list of the fields that i think would be nice in the output
+FIELDS = ['Entity ID', 'Agency', 'Recording Technique', 
+          'Project', 'Roll', 'Frame', 'Acquisition Date', 
+          'Scale',  'Image Type', 'Quality', 'Cloud Cover', 
+          'Photo ID', 'Flying Height in Feet', 'Film Length and Width',
+          'Focal Length', 'Stereo Overlap']
+           
 def readmetadatafgdc(url):
+    """"""
     mydict = {}
     f = urllib2.urlopen(url)
     content = f.read()
@@ -28,7 +37,7 @@ def readmetadatafgdc(url):
             key, val = row.strip(' ').split(':')
             if key and val:
                 mydict[key] = val
-    print json.dump(mydict, indent=4)
+    return mydict
 
 def readcoordinatesfdgc(url):
     """reads a metadata fdgc table for a earthexplorer raster and returns the four corners.
@@ -43,6 +52,14 @@ maybe we can find something for that"""
     Latitudes = [float(y) for x, y in mylist if x == 'Latitude']
     Longitudes = [float(y) for x, y in mylist if x == 'Longitude']
     return zip(Latitudes, Longitudes)
+   
+def readmetadatacsv(infile):
+    """i dont have bs4 at work right now so i am downloading metadata and parsing it as a csv.
+    this serves no other purpose outside of testing"""
+    with open(infile) as f:
+        reader = csv.reader(f)
+        mydict = {k: v for k, v in reader}
+    return mydict
     
 def readmetadatatable(url):
     """takes a url to an earthexplorer table metadata file and returns the metadata in a dictionary"""
@@ -85,6 +102,21 @@ def writegeojson(incoordinates, outfile):
         # but i dont thing that it should
         geojson.dump(geom, f, indent=4)
         
+def createnewshapefile(basepath, filename):
+    feature = arcpy.CreateFeatureclass_management(basepath, filename, "POLYGON", "", "", "",
+        """GEOGCS["WGS 84",
+        DATUM["WGS_1984",
+        SPHEROID["WGS 84", 6378137.0, 298.257223563, AUTHORITY["EPSG","7030"]],
+        TOWGS84[0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+        AUTHORITY["EPSG","6326"]],
+        PRIMEM["Greenwich", 0.0, AUTHORITY["EPSG","8901"]],
+        UNIT["degree", 0.017453292519943295],
+        AXIS["Longitude", EAST],
+        AXIS["Latitude", NORTH],
+        AUTHORITY["EPSG","4326"]])""")
+    for field in FIELDS:
+        arcpy.AddField_management(feature, field, "TEXT")
+        
 def writeshapefile(incoordinates, outfile, oid):
     """"""
     try:
@@ -95,17 +127,7 @@ def writeshapefile(incoordinates, outfile, oid):
         #more details about not having arcpy, or an attempt to use shapefile, not a bad idea actually
     if not arcpy.Exists(outfile):
         basepath, filename = os.path.split(outfile)
-        arcpy.CreateFeatureclass_management(basepath, filename, "POLYGON", "", "", "",
-        """GEOGCS["WGS 84",
-DATUM["WGS_1984",
-SPHEROID["WGS 84", 6378137.0, 298.257223563, AUTHORITY["EPSG","7030"]],
-TOWGS84[0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
-AUTHORITY["EPSG","6326"]],
-PRIMEM["Greenwich", 0.0, AUTHORITY["EPSG","8901"]],
-UNIT["degree", 0.017453292519943295],
-AXIS["Longitude", EAST],
-AXIS["Latitude", NORTH],
-AUTHORITY["EPSG","4326"]])""")
+        createnewshapefile(basepath, filename)
     cur = arcpy.InsertCursor(outfile)
     newrow = cur.newRow()
     newrow.id = oid
