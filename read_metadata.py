@@ -166,7 +166,7 @@ def writeshapefile(incoordinates, outfile, field_data):
     
     
 def filterdata(datadict, fielddict):
-    mydict = {v: datadict[k] for k, v in fielddict}
+    mydict = {v: datadict[k] for k, v in fielddict.iteritems()}
     return mydict
     
 def findNextOid(infeature):
