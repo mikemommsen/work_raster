@@ -13,7 +13,6 @@ import os
 # re to find the rinds g ring coords in fgdc metadata
 G_RING_MATCHER = r'G-Ring_(Latitude|Longitude):\s*([-+]?\d*\.\d+|\d+)'
 
-
 #the keys for the corners in the table metadata
 CORNERS = {'NW': ('NW Corner Lat dec', 'NW Corner Long dec'),
            'NE': ('NE Corner Lat dec', 'NE Corner Long dec'),
