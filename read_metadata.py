@@ -9,15 +9,16 @@ import json
 import time
 import re
 import os
+from collections import OrderedDict
 
 # re to find the rinds g ring coords in fgdc metadata
 G_RING_MATCHER = r'G-Ring_(Latitude|Longitude):\s*([-+]?\d*\.\d+|\d+)'
 
 #the keys for the corners in the table metadata
-CORNERS = {'NW': ('NW Corner Lat dec', 'NW Corner Long dec'),
+CORNERS = OrderedDict({'NW': ('NW Corner Lat dec', 'NW Corner Long dec'),
            'NE': ('NE Corner Lat dec', 'NE Corner Long dec'),
            'SE': ('SE Corner Lat dec', 'SE Corner Long dec'),
-           'SW': ('SW Corner Lat dec', 'SW Corner Long dec')}
+           'SW': ('SW Corner Lat dec', 'SW Corner Long dec')})
            
            
 # list of the fields that i think would be nice in the output
@@ -60,6 +61,11 @@ def readmetadatacsv(infile):
         reader = csv.reader(f)
         mydict = {k: v for k, v in reader}
     return mydict
+    
+def readcoordinatescsv(indict):
+    for lat, lon in CORNERS.values():
+        mylist.append(indict[],indict[])
+    return
     
 def readmetadatatable(url):
     """takes a url to an earthexplorer table metadata file and returns the metadata in a dictionary"""
@@ -162,15 +168,18 @@ def findNextOid(infeature):
 def main():
     url = sys.argv[1]
     outpath = sys.argv[2]
-    output = readcoordinatesfdgc(url)
+    #coordinates = readcoordinatesfdgc(url)
+    alldata = readmetadatacsv(infile)
+    field_data = filterdict(alldata, FIELDS)
+    
     print output
     outbasepath, outfile = os.path.split(outpath)
     outfilename, outfileextension = os.path.splitext(outfile)
     if outfileextension == '.shp':
         oid = findNextOid(outpath)
-        writeshapefile(output, outpath, oid)
+        writeshapefile(coordinates, outpath, oid)
     elif outfileextension in ['.json', '.geojson']:
-        writegeojson(output, outpath)
+        writegeojson(coordinates, outpath)
     print True
 
 if __name__ == '__main__':
