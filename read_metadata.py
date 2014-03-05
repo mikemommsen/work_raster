@@ -23,7 +23,7 @@ CORNERS = OrderedDict({'NW': ('NW Corner Lat dec', 'NW Corner Long dec'),
            'SW': ('SW Corner Lat dec', 'SW Corner Long dec')})
            
 # list of the fields that i think would be nice in the output
-FIELDS = OrderedDict({'Entity ID':'title', 
+FIELDS = OrderedDict({'Entity  ID':'title', 
           'Agency':'Agency', 
           'Recording Technique':'rec_tech', 
           'Project':'Project', 
