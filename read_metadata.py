@@ -21,6 +21,20 @@ UTM_DICT = {10: 'NAD 1983 UTM Zone 10N', 11: 'NAD 1983 UTM Zone 11N',
             16: 'NAD 1983 UTM Zone 16N', 17: 'NAD 1983 UTM Zone 17N',
             18: 'NAD 1983 UTM Zone 18N', 19: 'NAD 1983 UTM Zone 19N'}
 
+# keys are utm names, values are the wkid needed in the aux file
+WKID_DICT = {'NAD_1983_UTM_Zone_7N': '26907', 'NAD_1983_UTM_Zone_3N': '26903', 
+            'NAD_1983_UTM_Zone_19N': '26919', 'NAD_1983_UTM_Zone_1N': '26901', 
+            'NAD_1983_UTM_Zone_15N': '26915', 'NAD_1983_UTM_Zone_21N': '26921', 
+            'NAD_1983_UTM_Zone_8N': '26908', 'NAD_1983_UTM_Zone_23N': '26923', 
+            'NAD_1983_UTM_Zone_17N': '26917', 'NAD_1983_UTM_Zone_13N': '26913', 
+            'NAD_1983_UTM_Zone_11N': '26911', 'NAD_1983_UTM_Zone_6N': '26906', 
+            'NAD_1983_UTM_Zone_18N': '26918', 'NAD_1983_UTM_Zone_4N': '26904', 
+            'NAD_1983_UTM_Zone_5N': '26905', 'NAD_1983_UTM_Zone_2N': '26902', 
+            'NAD_1983_UTM_Zone_20N': '26920', 'NAD_1983_UTM_Zone_14N': '26914', 
+            'NAD_1983_UTM_Zone_9N': '26909', 'NAD_1983_UTM_Zone_10N': '26910', 
+            'NAD_1983_UTM_Zone_16N': '26916', 'NAD_1983_UTM_Zone_22N': '26922', 
+            'NAD_1983_UTM_Zone_12N': '26912'}
+
 # re to find the rinds g ring coords in fgdc metadata
 G_RING_MATCHER = r'G-Ring_(Latitude|Longitude):\s*([-+]?\d*\.\d+|\d+)'
 
