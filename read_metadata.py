@@ -163,7 +163,7 @@ def writeshapefile(incoordinates, outfile, field_data):
         oid = findNextOid(outfile)
     # start up a cursor - this makes me think that we should make this something that can be bulk loaded with a list of coordinates
     # all of this stuff for adding a feature to a featureclass is all from arcpy documentation on cursors so more can be found there
-    utmzone = getutmzone(sum(lon for lat, lon in coordinates)/len(coordinates))
+    utmzone = getutmzone(sum(lon for lat, lon in incoordinates)/len(incoordinates))
     cur = arcpy.InsertCursor(outfile)
     newrow = cur.newRow()
     newrow.id = oid
