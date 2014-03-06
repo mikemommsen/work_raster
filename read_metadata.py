@@ -13,6 +13,13 @@ import os
 import csv
 from collections import OrderedDict
 
+# keys are integers, values ARCGIS NAME 
+UTM_DICT = {10: 'NAD 1983 UTM Zone 10N', 11: 'NAD 1983 UTM Zone 11N', 
+            12: 'NAD 1983 UTM Zone 12N', 13: 'NAD 1983 UTM Zone 13N', 
+            14: 'NAD 1983 UTM Zone 14N', 15: 'NAD 1983 UTM Zone 15N',
+            16: 'NAD 1983 UTM Zone 16N', 17: 'NAD 1983 UTM Zone 17N',
+            18: 'NAD 1983 UTM Zone 18N', 19: 'NAD 1983 UTM Zone 19N'}
+
 # re to find the rinds g ring coords in fgdc metadata
 G_RING_MATCHER = r'G-Ring_(Latitude|Longitude):\s*([-+]?\d*\.\d+|\d+)'
 
@@ -132,6 +139,13 @@ def createnewshapefile(basepath, filename):
     # there is probably a better way to specify fields for a new shapefile than adding them one at a time huh?
     for field in FIELDS.values():
         arcpy.AddField_management(feature, field, "TEXT")
+    for corner in ['NW', 'NE', 'SE', 'SW']:
+        coords = CORNERS[corner]
+        lat, lon = coords
+        lat = lat.split(' ')[0] + lat.split(' ')[2]
+        lon = lon.split(' ')[0] + lon.split(' ')[2]
+        arcpy.AddField_management(feature, lat, "DOUBLE")
+        arcpy.AddField_management(feature, lon, "DOUBLE")
         
 def writeshapefile(incoordinates, outfile, field_data):
     """takes coordinates and field_data and writes to the outfile"""
@@ -156,16 +170,22 @@ def writeshapefile(incoordinates, outfile, field_data):
     newrow = cur.newRow()
     newrow.id = oid
     newrow.setValue('utmzone', utmzone)
-    
+    # create a wgs84 spatialReference
+    wgs84 = arcpy.SpatialReference('WGS 1984')
     arrayObj = arcpy.Array()
     pnt = arcpy.Point()
     for lat, lon in incoordinates:
-        pnt.X, pnt.Y = lon, lat 
+        pnt.X, pnt.Y = lon, lat
         arrayObj.add(pnt)
-    poly = arcpy.Polygon(arrayObj)
+    poly = arcpy.Polygon(arrayObj, wgs84)
     newrow.shape = arrayObj
     for key, value in field_data.iteritems():
         newrow.setValue(key, value)
+    utmsref = arcpy.SpatialReference(UTM_DICT[utmzone])
+    utmpoly = poly.projectAs(utmsref)
+    for part in utmpoly:
+        for point in part:
+            newRow.setValue(field)
     cur.insertRow(newrow)
     # should we have a try here, because if it fails we will probably destroy the feature class
     del newrow, cur
