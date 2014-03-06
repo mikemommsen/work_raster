@@ -283,7 +283,7 @@ def createworldfile(coordinates, utmnumber, inraster, template):
     utmname = UTM_DICT[utmnumber]
     wkid = WKID_DICT[utmname]
     coordinates['wkid'] = wkid
-    utmPrjText = PROJDICT[utmname]
+    utmPrjText = PROJ_DICT[utmname]
     coordinates['prj'] = utmPrjText
     output = template.substitute(coordinates)
     outfile = inraster + '.aux.xml'
