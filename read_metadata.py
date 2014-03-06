@@ -235,7 +235,7 @@ def main():
     alldata = readmetadatatable(url)
     # this could be dumped into the geojson properties or attributes or whatever they call it in geojson
     field_data = filterdata(alldata, FIELDS)
-    coordinates = readcoordinatescsv(alldata)
+    coordinates = readcoordinatestable(alldata)
     outbasepath, outfile = os.path.split(outpath)
     outfilename, outfileextension = os.path.splitext(outfile)
     if outfileextension == '.shp':
