@@ -12,6 +12,7 @@ import re
 import os
 import csv
 from collections import OrderedDict
+import math
 
 # keys are integers, values ARCGIS NAME 
 UTM_DICT = {10: 'NAD 1983 UTM Zone 10N', 11: 'NAD 1983 UTM Zone 11N', 
@@ -192,8 +193,8 @@ def writeshapefile(incoordinates, outfile, field_data):
             latfield, lonfield = corner + 'latUTM', corner + 'lonUTM'
             newrow.setValue(latfield, lat)
             newrow.setValue(lonfield, lon)
-    xdist = math.hypot(utmcoords[0], utmcoords[1])
-    ydist = math.hypot(utmcoords[0], utmcoords[2])
+    xdist = coordhypot(utmcoords[0], utmcoords[1])
+    ydist = coordhypot(utmcoords[0], utmcoords[2])
     newrow.setValue('xdist', xdist)
     newrow.setValue('ydist', ydist)
             
@@ -202,6 +203,12 @@ def writeshapefile(incoordinates, outfile, field_data):
     del newrow, cur
     # probably dont need to return anything here huh?
     return True
+    
+def coordhypot(incoords):
+    """takes two coords and returns the distance between them"""
+    x = incoords[0][0] - incoords[1][0]
+    y = incoords[0][1] - incoords[1][1]
+    return math.hypot(x,y)
     
 def filterdata(datadict, fielddict):
     """takes a datadict and returns the values that have keys in the fielddict along with the value from the fielddict"""
