@@ -1,0 +1,52 @@
+<PAMDataset>
+  <Metadata domain="Esri">
+    <MDI key="PyramidResamplingType">NEAREST</MDI>
+  </Metadata>
+  <Metadata domain="xml:ESRI" format="xml">
+    <GeodataXform xsi:type="typens:PolynomialXform" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:typens="http://www.esri.com/schemas/ArcGIS/10.1">
+      <PolynomialOrder>1</PolynomialOrder>
+      <SpatialReference xsi:type="typens:ProjectedCoordinateSystem">
+        <WKT>$prj</WKT>
+        <XOrigin>-5682840.144496398</XOrigin>
+        <YOrigin>-10997761.437232617</YOrigin>
+        <XYScale>409501483.83139884</XYScale>
+        <ZOrigin>-100000</ZOrigin>
+        <ZScale>10000</ZScale>
+        <MOrigin>-100000</MOrigin>
+        <MScale>10000</MScale>
+        <XYTolerance>0.001</XYTolerance>
+        <ZTolerance>0.001</ZTolerance>
+        <MTolerance>0.001</MTolerance>
+        <HighPrecision>true</HighPrecision>
+        <WKID>$wkid</WKID>
+        <LatestWKID>$wkid</LatestWKID>
+      </SpatialReference>
+      <SourceGCPs xsi:type="typens:ArrayOfDouble">
+        <Double>0</Double>
+        <Double>0</Double>
+        <Double>$width</Double>
+        <Double>0</Double>
+        <Double>$width</Double>
+        <Double>-$height</Double>
+        <Double>0</Double>
+        <Double>-$height</Double>
+      </SourceGCPs>
+      <TargetGCPs xsi:type="typens:ArrayOfDouble">
+        <Double>$NWlonUTM</Double>
+        <Double>$NWlatUTM</Double>
+        <Double>$NElonUTM</Double>
+        <Double>$NElatUTM</Double>
+        <Double>$SElonUTM</Double>
+        <Double>$SElatUTM</Double>
+        <Double>$SWlonUTM</Double>
+        <Double>$SWlatUTM</Double>
+      </TargetGCPs>
+      <Name />
+    </GeodataXform>
+  </Metadata>
+  <PAMRasterBand band="1">
+    <Metadata domain="IMAGE_STRUCTURE">
+      <MDI key="COMPRESSION">JPEG</MDI>
+    </Metadata>
+  </PAMRasterBand>
+</PAMDataset>
