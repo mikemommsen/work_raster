@@ -144,6 +144,7 @@ def createnewshapefile(basepath, filename):
         lon = corner + 'lonUTM'
         arcpy.AddField_management(feature, lat, "DOUBLE")
         arcpy.AddField_management(feature, lon, "DOUBLE")
+    arcpy.AddField_management(feature,'utmzone','TEXT')
         
 def writeshapefile(incoordinates, outfile, field_data):
     """takes coordinates and field_data and writes to the outfile"""
@@ -167,7 +168,7 @@ def writeshapefile(incoordinates, outfile, field_data):
     cur = arcpy.InsertCursor(outfile)
     newrow = cur.newRow()
     newrow.id = oid
-    newrow.setValue('utmzone', utmzone)
+    newrow.setValue('utmzone', UTM_DICT[utmzone])
     # create a wgs84 spatialReference
     wgs84 = arcpy.SpatialReference('WGS 1984')
     arrayObj = arcpy.Array()
