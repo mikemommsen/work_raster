@@ -186,8 +186,8 @@ def writeshapefile(incoordinates, outfile, field_data):
         for corner, point in zip(['NW', 'NE', 'SE', 'SW'], part):
             lon, lat = point.X, point.Y
             latfield, lonfield = corner + 'latUTM', corner + 'lonUTM'
-            newRow.setValue(latfield, lat)
-            newRow.setValue(lonfield, lon)
+            newrow.setValue(latfield, lat)
+            newrow.setValue(lonfield, lon)
     cur.insertRow(newrow)
     # should we have a try here, because if it fails we will probably destroy the feature class
     del newrow, cur
