@@ -211,24 +211,23 @@ def writeshapefile(incoordinates, outfile, field_data):
         newrow.setValue(key, value)
     utmsref = arcpy.SpatialReference(UTM_DICT[utmzone])
     utmpoly = poly.projectAs(utmsref)
-    utmcoords = []
+    utmcoords = {}
     for part in utmpoly:
         for corner, point in zip(['NW', 'NE', 'SE', 'SW'], part):
             lon, lat = point.X, point.Y
-            utmcoords.append((lat, lon))
             latfield, lonfield = corner + 'latUTM', corner + 'lonUTM'
+            utmcoords[latfield] = lat
+            utmcoords[lonfield] = lon
             newrow.setValue(latfield, lat)
             newrow.setValue(lonfield, lon)
     xdist = coordhypot([utmcoords[0], utmcoords[1]])
     ydist = coordhypot([utmcoords[0], utmcoords[3]])
     newrow.setValue('xdist', xdist)
     newrow.setValue('ydist', ydist)
-            
     cur.insertRow(newrow)
     # should we have a try here, because if it fails we will probably destroy the feature class
     del newrow, cur
-    # probably dont need to return anything here huh?
-    return True
+    return utmcoords, utmzone
     
 def coordhypot(incoords):
     """takes two coords and returns the distance between them"""
@@ -265,19 +264,23 @@ def getutmzone(lon):
     """takes a wgs84 longitude and returns the utm zone"""
     return 30 - int(lon * -1) / 6
 
-def createworldfile(coordinates, inraster):
+def createworldfile(coordinates, utmnumber, inraster, template):
     """takes corner coordinates and a raster and returns the world file."""
-    width, height = getsize(inraster)
-    utmnumber = getutmzone(sum(lon for lat, lon in coordinates)/len(coordinates))
+    mydict = {}
+    mydict['width'],mydict['height'] = getsize(inraster)
     utmname = UTM_DICT[utmnumber]
     wkid = WKID_DICT[utmname]
-    utmPrjText = 
+    myidct['wkid'] = wkid
+    utmPrjText = PROJDICT[utmname]
+    mydict['prj'] = utmPrjText
     
     
 def main():
     """"""
     url = sys.argv[1]
     outpath = sys.argv[2]
+    inraster = sys.argv[3]
+    template = sys.argv[4]
     alldata = readmetadatatable(url)
     # this could be dumped into the geojson properties or attributes or whatever they call it in geojson
     field_data = filterdata(alldata, FIELDS)
@@ -285,7 +288,8 @@ def main():
     outbasepath, outfile = os.path.split(outpath)
     outfilename, outfileextension = os.path.splitext(outfile)
     if outfileextension == '.shp':
-        writeshapefile(coordinates, outpath, field_data)
+        utmcoords, utmnumber = writeshapefile(coordinates, outpath, field_data)
+        createworldfile(utmcoords, utmnumber, inraster, template)
     elif outfileextension in ['.json', '.geojson']:
         writegeojson(coordinates, outpath)
     print True
