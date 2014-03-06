@@ -219,8 +219,9 @@ def writeshapefile(incoordinates, outfile, field_data):
             utmcoords[lonfield] = lon
             newrow.setValue(latfield, lat)
             newrow.setValue(lonfield, lon)
-    xdist = 'null'#coordhypot([utmcoords[0], utmcoords[1]])
-    ydist = 'null'#coordhypot([utmcoords[0], utmcoords[3]])
+    # we changed how coords are stored so i need to come back and fix the distance part of this
+    xdist = 0#coordhypot([utmcoords[0], utmcoords[1]])
+    ydist = 0#coordhypot([utmcoords[0], utmcoords[3]])
     newrow.setValue('xdist', xdist)
     newrow.setValue('ydist', ydist)
     cur.insertRow(newrow)
@@ -255,7 +256,7 @@ def getsize(inraster):
     # is PIL part of the standard library?
     # if so we can move this import up to the top
     from PIL import Image
-    i = image.open(inraster)
+    i = Image.open(inraster)
     width, height = i.size
     return width, height
     
