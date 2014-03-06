@@ -22,18 +22,31 @@ UTM_DICT = {10: 'NAD 1983 UTM Zone 10N', 11: 'NAD 1983 UTM Zone 11N',
             18: 'NAD 1983 UTM Zone 18N', 19: 'NAD 1983 UTM Zone 19N'}
 
 # keys are utm names, values are the wkid needed in the aux file
-WKID_DICT = {'NAD_1983_UTM_Zone_7N': '26907', 'NAD_1983_UTM_Zone_3N': '26903', 
-            'NAD_1983_UTM_Zone_19N': '26919', 'NAD_1983_UTM_Zone_1N': '26901', 
-            'NAD_1983_UTM_Zone_15N': '26915', 'NAD_1983_UTM_Zone_21N': '26921', 
-            'NAD_1983_UTM_Zone_8N': '26908', 'NAD_1983_UTM_Zone_23N': '26923', 
-            'NAD_1983_UTM_Zone_17N': '26917', 'NAD_1983_UTM_Zone_13N': '26913', 
-            'NAD_1983_UTM_Zone_11N': '26911', 'NAD_1983_UTM_Zone_6N': '26906', 
-            'NAD_1983_UTM_Zone_18N': '26918', 'NAD_1983_UTM_Zone_4N': '26904', 
-            'NAD_1983_UTM_Zone_5N': '26905', 'NAD_1983_UTM_Zone_2N': '26902', 
-            'NAD_1983_UTM_Zone_20N': '26920', 'NAD_1983_UTM_Zone_14N': '26914', 
-            'NAD_1983_UTM_Zone_9N': '26909', 'NAD_1983_UTM_Zone_10N': '26910', 
-            'NAD_1983_UTM_Zone_16N': '26916', 'NAD_1983_UTM_Zone_22N': '26922', 
-            'NAD_1983_UTM_Zone_12N': '26912'}
+WKID_DICT = {
+    "NAD 1983 UTM Zone 11N": "26911", 
+    "NAD 1983 UTM Zone 13N": "26913", 
+    "NAD 1983 UTM Zone 17N": "26917", 
+    "NAD 1983 UTM Zone 15N": "26915", 
+    "NAD 1983 UTM Zone 19N": "26919", 
+    "NAD 1983 UTM Zone 22N": "26922", 
+    "NAD 1983 UTM Zone 9N": "26909", 
+    "NAD 1983 UTM Zone 2N": "26902", 
+    "NAD 1983 UTM Zone 20N": "26920", 
+    "NAD 1983 UTM Zone 8N": "26908", 
+    "NAD 1983 UTM Zone 4N": "26904", 
+    "NAD 1983 UTM Zone 6N": "26906", 
+    "NAD 1983 UTM Zone 10N": "26910", 
+    "NAD 1983 UTM Zone 14N": "26914", 
+    "NAD 1983 UTM Zone 12N": "26912", 
+    "NAD 1983 UTM Zone 16N": "26916", 
+    "NAD 1983 UTM Zone 21N": "26921", 
+    "NAD 1983 UTM Zone 23N": "26923", 
+    "NAD 1983 UTM Zone 18N": "26918", 
+    "NAD 1983 UTM Zone 3N": "26903", 
+    "NAD 1983 UTM Zone 7N": "26907", 
+    "NAD 1983 UTM Zone 1N": "26901", 
+    "NAD 1983 UTM Zone 5N": "26905"
+}
 PROJ_DICT = {
     "NAD 1983 UTM Zone 10N": "PROJCS[&quot;NAD_1983_UTM_Zone_10N&quot;,GEOGCS[&quot;GCS_North_American_1983&quot;,DATUM[&quot;D_North_American_1983&quot;,SPHEROID[&quot;GRS_1980&quot;,6378137.0,298.257222101]],PRIMEM[&quot;Greenwich&quot;,0.0],UNIT[&quot;Degree&quot;,0.0174532925199433]],PROJECTION[&quot;Transverse_Mercator&quot;],PARAMETER[&quot;False_Easting&quot;,500000.0],PARAMETER[&quot;False_Northing&quot;,0.0],PARAMETER[&quot;Central_Meridian&quot;,-123.0],PARAMETER[&quot;Scale_Factor&quot;,0.9996],PARAMETER[&quot;Latitude_Of_Origin&quot;,0.0],UNIT[&quot;Meter&quot;,1.0],AUTHORITY[&quot;EPSG&quot;,26910]]\n", 
     "NAD 1983 UTM Zone 11N": "PROJCS[&quot;NAD_1983_UTM_Zone_11N&quot;,GEOGCS[&quot;GCS_North_American_1983&quot;,DATUM[&quot;D_North_American_1983&quot;,SPHEROID[&quot;GRS_1980&quot;,6378137.0,298.257222101]],PRIMEM[&quot;Greenwich&quot;,0.0],UNIT[&quot;Degree&quot;,0.0174532925199433]],PROJECTION[&quot;Transverse_Mercator&quot;],PARAMETER[&quot;False_Easting&quot;,500000.0],PARAMETER[&quot;False_Northing&quot;,0.0],PARAMETER[&quot;Central_Meridian&quot;,-117.0],PARAMETER[&quot;Scale_Factor&quot;,0.9996],PARAMETER[&quot;Latitude_Of_Origin&quot;,0.0],UNIT[&quot;Meter&quot;,1.0],AUTHORITY[&quot;EPSG&quot;,26911]]\n", 
