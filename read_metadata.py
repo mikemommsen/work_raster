@@ -1,7 +1,5 @@
 # mike mommsen
 # march 2014
-
-
 # import parts of the standard library that are going to be used
 # this is my first time importing non standard modules in functions themselves, but it seems like a good idea
 import sys
@@ -14,6 +12,7 @@ import csv
 from collections import OrderedDict
 import math
 import cgi
+import string
 
 # keys are integers, values ARCGIS NAME 
 UTM_DICT = {10: 'NAD 1983 UTM Zone 10N', 11: 'NAD 1983 UTM Zone 11N', 
