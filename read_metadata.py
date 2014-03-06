@@ -266,21 +266,26 @@ def getutmzone(lon):
 
 def createworldfile(coordinates, utmnumber, inraster, template):
     """takes corner coordinates and a raster and returns the world file."""
-    mydict = {}
-    mydict['width'],mydict['height'] = getsize(inraster)
+    coordinates['width'], coordinates['height'] = getsize(inraster)
     utmname = UTM_DICT[utmnumber]
     wkid = WKID_DICT[utmname]
-    myidct['wkid'] = wkid
+    coordinates['wkid'] = wkid
     utmPrjText = PROJDICT[utmname]
-    mydict['prj'] = utmPrjText
-    
+    coordinates['prj'] = utmPrjText
+    output = template.substitute(coordinates)
+    outfile = inraster + '.aux.xml'
+    with open(outfile, 'w') as f:
+        f.write(output)
     
 def main():
     """"""
     url = sys.argv[1]
     outpath = sys.argv[2]
     inraster = sys.argv[3]
-    template = sys.argv[4]
+    templatefile = sys.argv[4]
+    with open(templatefile) as f:
+        text = f.read()
+        template = string.Template(text)
     alldata = readmetadatatable(url)
     # this could be dumped into the geojson properties or attributes or whatever they call it in geojson
     field_data = filterdata(alldata, FIELDS)
