@@ -140,10 +140,8 @@ def createnewshapefile(basepath, filename):
     for field in FIELDS.values():
         arcpy.AddField_management(feature, field, "TEXT")
     for corner in ['NW', 'NE', 'SE', 'SW']:
-        coords = CORNERS[corner]
-        lat, lon = coords
-        lat = lat.split(' ')[0] + lat.split(' ')[2]
-        lon = lon.split(' ')[0] + lon.split(' ')[2]
+        lat = corner + 'latUTM'
+        lon = corner + 'lonUTM'
         arcpy.AddField_management(feature, lat, "DOUBLE")
         arcpy.AddField_management(feature, lon, "DOUBLE")
         
@@ -184,8 +182,11 @@ def writeshapefile(incoordinates, outfile, field_data):
     utmsref = arcpy.SpatialReference(UTM_DICT[utmzone])
     utmpoly = poly.projectAs(utmsref)
     for part in utmpoly:
-        for point in part:
-            newRow.setValue(field)
+        for corner, point in zip(['NW', 'NE', 'SE', 'SW'], part):
+            lon, lat = point.X, point.Y
+            latfield, lonfield = corner + 'latUTM', corner + 'lonUTM'
+            newRow.setValue(latfield, lat)
+            newRow.setValue(lonfield, lon)
     cur.insertRow(newrow)
     # should we have a try here, because if it fails we will probably destroy the feature class
     del newrow, cur
