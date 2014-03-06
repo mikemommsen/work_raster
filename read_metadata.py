@@ -91,7 +91,8 @@ def readmetadatatable(url):
 def readcoordinatestable(indict):
     """takes a url and returns the coordinates of the corners"""
     mylist = []
-    for corner, coords in CORNERS.iteritems():
+    for corner in ['NW', 'NE', 'SE', 'SW']:
+        coords = CORNERS[corner]
         lat, lon = [float(indict[x]) for x in coords]
         mylist.append((lat,lon))
     return mylist
@@ -150,9 +151,12 @@ def writeshapefile(incoordinates, outfile, field_data):
         oid = findNextOid(outfile)
     # start up a cursor - this makes me think that we should make this something that can be bulk loaded with a list of coordinates
     # all of this stuff for adding a feature to a featureclass is all from arcpy documentation on cursors so more can be found there
+    utmzone = getutmzone(sum(lon for lat, lon in coordinates)/len(coordinates))
     cur = arcpy.InsertCursor(outfile)
     newrow = cur.newRow()
     newrow.id = oid
+    newrow.setValue('utmzone', utmzone)
+    
     arrayObj = arcpy.Array()
     pnt = arcpy.Point()
     for lat, lon in incoordinates:
@@ -197,7 +201,10 @@ def getutmzone(longitude):
     """takes a wgs84 longitude and returns the utm zone"""
     return 30 - int(lon * -1) / 6
 
-def createworldfile(coordinates, pixels, rows):
+def createworldfile(coordinates, inraster):
+    """takes corner coordinates and a raster and returns the world file."""
+    width, height = getsize(inraster)
+    utmzone = getutmzone(sum(lon for lat, lon in coordinates)/len(coordinates))
     
     
 def main():
