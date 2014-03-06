@@ -219,8 +219,8 @@ def writeshapefile(incoordinates, outfile, field_data):
             utmcoords[lonfield] = lon
             newrow.setValue(latfield, lat)
             newrow.setValue(lonfield, lon)
-    xdist = coordhypot([utmcoords[0], utmcoords[1]])
-    ydist = coordhypot([utmcoords[0], utmcoords[3]])
+    xdist = 'null'#coordhypot([utmcoords[0], utmcoords[1]])
+    ydist = 'null'#coordhypot([utmcoords[0], utmcoords[3]])
     newrow.setValue('xdist', xdist)
     newrow.setValue('ydist', ydist)
     cur.insertRow(newrow)
