@@ -218,7 +218,7 @@ def getsize(inraster):
     width, height = i.size
     return width, height
     
-def getutmzone(longitude):
+def getutmzone(lon):
     """takes a wgs84 longitude and returns the utm zone"""
     return 30 - int(lon * -1) / 6
 
