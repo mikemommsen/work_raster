@@ -13,6 +13,7 @@ import math
 import string
 
 # keys are integers, values ARCGIS NAME 
+# i think i made this so it is not needed
 UTM_DICT = {10: 'NAD 1983 UTM Zone 10N', 11: 'NAD 1983 UTM Zone 11N', 
             12: 'NAD 1983 UTM Zone 12N', 13: 'NAD 1983 UTM Zone 13N', 
             14: 'NAD 1983 UTM Zone 14N', 15: 'NAD 1983 UTM Zone 15N',
@@ -203,11 +204,11 @@ def writeshapefile(incoordinates, outfile, field_data):
         oid = findNextOid(outfile)
     # start up a cursor - this makes me think that we should make this something that can be bulk loaded with a list of coordinates
     # all of this stuff for adding a feature to a featureclass is all from arcpy documentation on cursors so more can be found there
-    utmzone = getutmzone(sum(lon for lat, lon in incoordinates)/len(incoordinates))
+    utmname = getutmzone(sum(lon for lat, lon in incoordinates)/len(incoordinates))
     cur = arcpy.InsertCursor(outfile)
     newrow = cur.newRow()
     newrow.id = oid
-    newrow.setValue('utmzone', UTM_DICT[utmzone])
+    newrow.setValue('utmzone', utmname)
     # create a wgs84 spatialReference
     wgs84 = arcpy.SpatialReference('WGS 1984')
     arrayObj = arcpy.Array()
@@ -219,7 +220,7 @@ def writeshapefile(incoordinates, outfile, field_data):
     newrow.shape = arrayObj
     for key, value in field_data.iteritems():
         newrow.setValue(key, value)
-    utmsref = arcpy.SpatialReference(UTM_DICT[utmzone])
+    utmsref = arcpy.SpatialReference(utmname)
     utmpoly = poly.projectAs(utmsref)
     utmcoords = {}
     for part in utmpoly:
@@ -238,7 +239,7 @@ def writeshapefile(incoordinates, outfile, field_data):
     cur.insertRow(newrow)
     # should we have a try here, because if it fails we will probably destroy the feature class
     del newrow, cur
-    return utmcoords, utmzone
+    return utmcoords, utmname
     
 def coordhypot(incoords):
     """takes two coords and returns the distance between them"""
@@ -273,12 +274,13 @@ def getsize(inraster):
     
 def getutmzone(lon):
     """takes a wgs84 longitude and returns the utm zone"""
-    return 30 - int(lon * -1) / 6
+    utmnumber = 30 - int(lon * -1) / 6
+    utmname = 'NAD 1983 UTM Zone {0}N'.format(utmnumber)
+    return utmname
 
-def createworldfile(coordinates, utmnumber, inraster, template):
+def createworldfile(coordinates, utmname, inraster, template):
     """takes corner coordinates and a raster and returns the world file."""
     coordinates['width'], coordinates['height'] = getsize(inraster)
-    utmname = UTM_DICT[utmnumber]
     wkid = WKID_DICT[utmname]
     coordinates['wkid'] = wkid
     utmPrjText = PROJ_DICT[utmname]
@@ -304,8 +306,8 @@ def main():
     outbasepath, outfile = os.path.split(outpath)
     outfilename, outfileextension = os.path.splitext(outfile)
     if outfileextension == '.shp':
-        utmcoords, utmnumber = writeshapefile(coordinates, outpath, field_data)
-        createworldfile(utmcoords, utmnumber, inraster, template)
+        utmcoords, utmname = writeshapefile(coordinates, outpath, field_data)
+        createworldfile(utmcoords, utmname, inraster, template)
     elif outfileextension in ['.json', '.geojson']:
         writegeojson(coordinates, outpath)
     print True
