@@ -153,7 +153,30 @@ def createnewshapefile(basepath, filename):
     arcpy.AddField_management(feature,'utmzone','TEXT')
     arcpy.AddField_management(feature,'xdist','DOUBLE')
     arcpy.AddField_management(feature,'ydist','DOUBLE')
-        
+
+def createPolygon(incoordinates):
+    """takes lat lon incoordinates and returns an arcpy polygon"""
+    arrayObj = arcpy.Array()
+    pnt = arcpy.Point()
+    for lat, lon in incoordinates:
+        pnt.X, pnt.Y = lon, lat
+        arrayObj.add(pnt)
+    poly = arcpy.Polygon(arrayObj, wgs84)
+    return poly
+    
+def createUtmCoords(poly, utmname):
+    """"""
+    utmsref = arcpy.SpatialReference(utmname)
+    utmpoly = poly.projectAs(utmsref)
+    utmcoords = {}
+    for part in utmpoly:
+        for corner, point in zip(['NW', 'NE', 'SE', 'SW'], part):
+            lon, lat = point.X, point.Y
+            latfield, lonfield = corner + 'latUTM', corner + 'lonUTM'
+            utmcoords[latfield] = lat
+            utmcoords[lonfield] = lon
+    return utmcoords
+    
 def writeshapefile(incoordinates, outfile, field_data):
     """takes coordinates and field_data and writes to the outfile"""
     if not arcpy.Exists(outfile):
@@ -166,31 +189,18 @@ def writeshapefile(incoordinates, outfile, field_data):
     # start up a cursor - this makes me think that we should make this something that can be bulk loaded with a list of coordinates
     # all of this stuff for adding a feature to a featureclass is all from arcpy documentation on cursors so more can be found there
     utmname = getutmzone(sum(lon for lat, lon in incoordinates)/len(incoordinates))
+    poly = createPolygon(incoordinates)
     cur = arcpy.InsertCursor(outfile)
     newrow = cur.newRow()
     newrow.id = oid
     newrow.setValue('utmzone', utmname)
     # create a wgs84 spatialReference
-    arrayObj = arcpy.Array()
-    pnt = arcpy.Point()
-    for lat, lon in incoordinates:
-        pnt.X, pnt.Y = lon, lat
-        arrayObj.add(pnt)
-    poly = arcpy.Polygon(arrayObj, wgs84)
-    newrow.shape = arrayObj
+    newrow.shape = poly
     for key, value in field_data.iteritems():
         newrow.setValue(key, value)
-    utmsref = arcpy.SpatialReference(utmname)
-    utmpoly = poly.projectAs(utmsref)
-    utmcoords = {}
-    for part in utmpoly:
-        for corner, point in zip(['NW', 'NE', 'SE', 'SW'], part):
-            lon, lat = point.X, point.Y
-            latfield, lonfield = corner + 'latUTM', corner + 'lonUTM'
-            utmcoords[latfield] = lat
-            utmcoords[lonfield] = lon
-            newrow.setValue(latfield, lat)
-            newrow.setValue(lonfield, lon)
+    utmcoords = createUtmCoords(poly, utmname)
+    for field, val in utmcoords.iteritems():
+        newrow.setValue(field, val)
     cur.insertRow(newrow)
     # should we have a try here, because if it fails we will probably destroy the feature class
     del newrow, cur
