@@ -9,7 +9,6 @@ import re
 import os
 from collections import OrderedDict
 import string
-from PIL import Image
 import arcpy
 
 wgs84 = arcpy.SpatialReference('WGS 1984')
@@ -24,7 +23,9 @@ WKID_DICT = {
     "NAD 1983 UTM Zone 16N": "26916", 
     "NAD 1983 UTM Zone 17N": "26917", 
     "NAD 1983 UTM Zone 18N": "26918", 
-    "NAD 1983 UTM Zone 19N": "26919"}
+    "NAD 1983 UTM Zone 19N": "26919"
+    }
+    
 PROJ_DICT = {
     "NAD 1983 UTM Zone 10N": "PROJCS[&quot;NAD_1983_UTM_Zone_10N&quot;,GEOGCS[&quot;GCS_North_American_1983&quot;,DATUM[&quot;D_North_American_1983&quot;,SPHEROID[&quot;GRS_1980&quot;,6378137.0,298.257222101]],PRIMEM[&quot;Greenwich&quot;,0.0],UNIT[&quot;Degree&quot;,0.0174532925199433]],PROJECTION[&quot;Transverse_Mercator&quot;],PARAMETER[&quot;False_Easting&quot;,500000.0],PARAMETER[&quot;False_Northing&quot;,0.0],PARAMETER[&quot;Central_Meridian&quot;,-123.0],PARAMETER[&quot;Scale_Factor&quot;,0.9996],PARAMETER[&quot;Latitude_Of_Origin&quot;,0.0],UNIT[&quot;Meter&quot;,1.0],AUTHORITY[&quot;EPSG&quot;,26910]]\n", 
     "NAD 1983 UTM Zone 11N": "PROJCS[&quot;NAD_1983_UTM_Zone_11N&quot;,GEOGCS[&quot;GCS_North_American_1983&quot;,DATUM[&quot;D_North_American_1983&quot;,SPHEROID[&quot;GRS_1980&quot;,6378137.0,298.257222101]],PRIMEM[&quot;Greenwich&quot;,0.0],UNIT[&quot;Degree&quot;,0.0174532925199433]],PROJECTION[&quot;Transverse_Mercator&quot;],PARAMETER[&quot;False_Easting&quot;,500000.0],PARAMETER[&quot;False_Northing&quot;,0.0],PARAMETER[&quot;Central_Meridian&quot;,-117.0],PARAMETER[&quot;Scale_Factor&quot;,0.9996],PARAMETER[&quot;Latitude_Of_Origin&quot;,0.0],UNIT[&quot;Meter&quot;,1.0],AUTHORITY[&quot;EPSG&quot;,26911]]\n", 
@@ -208,11 +209,17 @@ def findNextOid(infeature):
     del cur
     return max(mylist) + 1
     
-def getsize(inraster):
+def getsizePIL(inraster):
     """this gets the size of the raster using PIL"""
+    from PIL import Image
     i = Image.open(inraster)
     width, height = i.size
     return width, height
+    
+def getsize(inraster):
+    """gets the size of the raster using arcpy"""
+    desc = arcpy.Describe(inraster)
+    return desc.width, desc.height
     
 def getutmzone(lon):
     """takes a wgs84 longitude and returns the utm zone"""
