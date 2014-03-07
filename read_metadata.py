@@ -1,7 +1,6 @@
 # mike mommsen
 # march 2014
-# import parts of the standard library that are going to be used
-# this is my first time importing non standard modules in functions themselves, but it seems like a good idea
+
 import sys
 import urllib2
 import json
@@ -11,6 +10,10 @@ import os
 from collections import OrderedDict
 import string
 from PIL import Image
+import arcpy
+
+wgs84 = arcpy.SpatialReference('WGS 1984')
+
 
 # keys are utm names, values are the wkid needed in the aux file
 WKID_DICT = {
@@ -137,17 +140,7 @@ def readcoordinatestable(indict):
 def createnewshapefile(basepath, filename):
     """takes a path and name and creates a new featureclass.
     although not explicityle required to be a shapefile that is the general goal here"""
-    feature = arcpy.CreateFeatureclass_management(basepath, filename, "POLYGON", "", "", "",
-        """GEOGCS["WGS 84",
-        DATUM["WGS_1984",
-        SPHEROID["WGS 84", 6378137.0, 298.257223563, AUTHORITY["EPSG","7030"]],
-        TOWGS84[0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
-        AUTHORITY["EPSG","6326"]],
-        PRIMEM["Greenwich", 0.0, AUTHORITY["EPSG","8901"]],
-        UNIT["degree", 0.017453292519943295],
-        AXIS["Longitude", EAST],
-        AXIS["Latitude", NORTH],
-        AUTHORITY["EPSG","4326"]])""")
+    feature = arcpy.CreateFeatureclass_management(basepath, filename, "POLYGON", "", "", "", wgs84)
     # add the fields
     # there is probably a better way to specify fields for a new shapefile than adding them one at a time huh?
     for field in FIELDS.values():
@@ -163,13 +156,6 @@ def createnewshapefile(basepath, filename):
         
 def writeshapefile(incoordinates, outfile, field_data):
     """takes coordinates and field_data and writes to the outfile"""
-    try:
-        import arcpy
-    except ImportError as e:
-        # could include some more details about person not having arcpy on their computer
-        print e
-        sys.exit(1)
-    # if the file does not exist then we have to make it 
     if not arcpy.Exists(outfile):
         basepath, filename = os.path.split(outfile)
         createnewshapefile(basepath, filename)
@@ -185,7 +171,6 @@ def writeshapefile(incoordinates, outfile, field_data):
     newrow.id = oid
     newrow.setValue('utmzone', utmname)
     # create a wgs84 spatialReference
-    wgs84 = arcpy.SpatialReference('WGS 1984')
     arrayObj = arcpy.Array()
     pnt = arcpy.Point()
     for lat, lon in incoordinates:
@@ -213,6 +198,8 @@ def writeshapefile(incoordinates, outfile, field_data):
     
 def filterdata(datadict, fielddict):
     """takes a datadict and returns the values that have keys in the fielddict along with the value from the fielddict"""
+    # this could be a good place to get data from napps that is not coming through
+    # i dont know if the metadata is different for napps, or if there is just less of it
     mydict = {v: datadict.get(k, 'NULL') for k, v in fielddict.iteritems()}
     return mydict
     
@@ -257,11 +244,11 @@ def findurl(inraster):
     # us if the url correct and try other urls if the first on that is made doesnt work
     urlTempalte = 'http://earthexplorer.usgs.gov/metadata/{0}/{1}'
     basepath, filename = os.path.split(inraster)
-    basefilename, extension os.path.splitext(filename)
+    basefilename, extension = os.path.splitext(filename)
     upperbasefilename = basefilename.upper()
-    if 'NAPP' upperbasefilename:
+    if 'NAPP' in upperbasefilename:
         metadatadir = '4662'
-    elif 'NHAP' upperbasefilename:
+    elif 'NHAP' in upperbasefilename:
         metadatadir = '4663'
     else:
         metdatadir = '4660'
