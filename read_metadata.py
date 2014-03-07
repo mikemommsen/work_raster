@@ -9,16 +9,8 @@ import time
 import re
 import os
 from collections import OrderedDict
-import math
 import string
-
-# keys are integers, values ARCGIS NAME 
-# i think i made this so it is not needed
-UTM_DICT = {10: 'NAD 1983 UTM Zone 10N', 11: 'NAD 1983 UTM Zone 11N', 
-            12: 'NAD 1983 UTM Zone 12N', 13: 'NAD 1983 UTM Zone 13N', 
-            14: 'NAD 1983 UTM Zone 14N', 15: 'NAD 1983 UTM Zone 15N',
-            16: 'NAD 1983 UTM Zone 16N', 17: 'NAD 1983 UTM Zone 17N',
-            18: 'NAD 1983 UTM Zone 18N', 19: 'NAD 1983 UTM Zone 19N'}
+from PIL import Image
 
 # keys are utm names, values are the wkid needed in the aux file
 WKID_DICT = {
@@ -119,7 +111,7 @@ def readmetadatatable(url):
     try:
         from bs4 import BeautifulSoup
     except ImportError as e:
-        # maybe put in some info here for people so they know they need bs4
+        arcpy.AddMessage('you need bs4 installed to read the internet')
         print e
         sys.exit(1)
     mydict = {}
@@ -141,23 +133,6 @@ def readcoordinatestable(indict):
         lat, lon = [float(indict[x]) for x in coords]
         mylist.append((lat,lon))
     return mylist
-    
-def writegeojson(incoordinates, outfile):
-    """takse coordinates and writes them to an outfile"""
-    # there is still a decent amount of work to do on this
-    # do we want it to be points, polys, or something else
-    # also if the file exists we probably want to append and not write over the old file
-    try:
-        import geojson
-    except ImportError as e:
-        print e
-        sys.exit(1)
-        #maybe more things here to let people know the problem of not having geojson for python
-    with open(outfile, 'w') as f:
-        geom = geojson.MultiPoint([(y, x) for x, y in incoordinates])
-        # we should check to see if indent causes any problems for programs parsers
-        # but i dont thing that it should
-        geojson.dump(geom, f, indent=4)
         
 def createnewshapefile(basepath, filename):
     """takes a path and name and creates a new featureclass.
@@ -231,21 +206,10 @@ def writeshapefile(incoordinates, outfile, field_data):
             utmcoords[lonfield] = lon
             newrow.setValue(latfield, lat)
             newrow.setValue(lonfield, lon)
-    # we changed how coords are stored so i need to come back and fix the distance part of this
-    xdist = 0#coordhypot([utmcoords[0], utmcoords[1]])
-    ydist = 0#coordhypot([utmcoords[0], utmcoords[3]])
-    newrow.setValue('xdist', xdist)
-    newrow.setValue('ydist', ydist)
     cur.insertRow(newrow)
     # should we have a try here, because if it fails we will probably destroy the feature class
     del newrow, cur
     return utmcoords, utmname
-    
-def coordhypot(incoords):
-    """takes two coords and returns the distance between them"""
-    x = incoords[0][0] - incoords[1][0]
-    y = incoords[0][1] - incoords[1][1]
-    return math.hypot(x,y)
     
 def filterdata(datadict, fielddict):
     """takes a datadict and returns the values that have keys in the fielddict along with the value from the fielddict"""
@@ -265,9 +229,6 @@ def findNextOid(infeature):
     
 def getsize(inraster):
     """this gets the size of the raster using PIL"""
-    # is PIL part of the standard library?
-    # if so we can move this import up to the top
-    from PIL import Image
     i = Image.open(inraster)
     width, height = i.size
     return width, height
@@ -278,7 +239,7 @@ def getutmzone(lon):
     utmname = 'NAD 1983 UTM Zone {0}N'.format(utmnumber)
     return utmname
 
-def createworldfile(coordinates, utmname, inraster, template):
+def createAuxFile(coordinates, utmname, inraster, template):
     """takes corner coordinates and a raster and returns the world file."""
     coordinates['width'], coordinates['height'] = getsize(inraster)
     wkid = WKID_DICT[utmname]
@@ -289,27 +250,43 @@ def createworldfile(coordinates, utmname, inraster, template):
     outfile = inraster + '.aux.xml'
     with open(outfile, 'w') as f:
         f.write(output)
+        
+def findurl(inraster):
+    """takes a path to a raster and returns the url for the metadata"""
+    # this could be a good function to read in the web data and tell 
+    # us if the url correct and try other urls if the first on that is made doesnt work
+    urlTempalte = 'http://earthexplorer.usgs.gov/metadata/{0}/{1}'
+    basepath, filename = os.path.split(inraster)
+    basefilename, extension os.path.splitext(filename)
+    upperbasefilename = basefilename.upper()
+    if 'NAPP' upperbasefilename:
+        metadatadir = '4662'
+    elif 'NHAP' upperbasefilename:
+        metadatadir = '4663'
+    else:
+        metdatadir = '4660'
+        if upperbasefilename[:2] != 'AR':
+            upperbasefilename = 'AR' + upperbasefilename
+    url = urlTemplate.format(metadatadir, upperbasefilename)
+    return url
     
 def main():
     """"""
-    url = sys.argv[1]
-    outpath = sys.argv[2]
-    inraster = sys.argv[3]
-    templatefile = sys.argv[4]
+    outpath = sys.argv[1]
+    inraster = sys.argv[2]
+    templatefile = sys.argv[3]
     with open(templatefile) as f:
         text = f.read()
         template = string.Template(text)
+    url = findurl(inraster)
     alldata = readmetadatatable(url)
     # this could be dumped into the geojson properties or attributes or whatever they call it in geojson
     field_data = filterdata(alldata, FIELDS)
     coordinates = readcoordinatestable(alldata)
     outbasepath, outfile = os.path.split(outpath)
     outfilename, outfileextension = os.path.splitext(outfile)
-    if outfileextension == '.shp':
-        utmcoords, utmname = writeshapefile(coordinates, outpath, field_data)
-        createworldfile(utmcoords, utmname, inraster, template)
-    elif outfileextension in ['.json', '.geojson']:
-        writegeojson(coordinates, outpath)
+    utmcoords, utmname = writeshapefile(coordinates, outpath, field_data)
+    createAuxFile(utmcoords, utmname, inraster, template)
     print True
 
 if __name__ == '__main__':
