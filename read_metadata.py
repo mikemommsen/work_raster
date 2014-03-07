@@ -251,6 +251,11 @@ def findurl(inraster):
     url = urlTemplate.format(metadatadir, upperbasefilename)
     return url
     
+def createpyramids(inraster):
+    """although this is a one liner, it could maybe use some customization"""
+    arcpy.BuildPyramids_management(inraster)
+    return True
+    
 def main():
     """"""
     outpath = sys.argv[1]
