@@ -8,10 +8,8 @@ import json
 import time
 import re
 import os
-import csv
 from collections import OrderedDict
 import math
-import cgi
 import string
 
 # keys are integers, values ARCGIS NAME 
