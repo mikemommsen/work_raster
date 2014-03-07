@@ -273,6 +273,7 @@ def main():
     outfilename, outfileextension = os.path.splitext(outfile)
     utmcoords, utmname = writeshapefile(coordinates, outpath, field_data)
     createAuxFile(utmcoords, utmname, inraster, template)
+    createpyramids(inraster)
     print True
 
 if __name__ == '__main__':
