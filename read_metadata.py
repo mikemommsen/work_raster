@@ -260,7 +260,7 @@ def main():
     """"""
     outpath = sys.argv[1]
     inraster = sys.argv[2]
-    templatefile = sys.argv[3]
+    templatefile = r'J:\GIS_Data\Working-MikeM\template.jpg.aux.xml' #sys.argv[3]
     with open(templatefile) as f:
         text = f.read()
         template = string.Template(text)
