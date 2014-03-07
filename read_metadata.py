@@ -129,14 +129,13 @@ def createnewshapefile(basepath, filename):
     # there is probably a better way to specify fields for a new shapefile than adding them one at a time huh?
     for field in FIELDS.values():
         arcpy.AddField_management(feature, field, "TEXT")
+    # seems like there is some overhead considering i make a dict with all these names in it in createUtmCoords
     for corner in ['NW', 'NE', 'SE', 'SW']:
         lat = corner + 'latUTM'
         lon = corner + 'lonUTM'
         arcpy.AddField_management(feature, lat, "DOUBLE")
         arcpy.AddField_management(feature, lon, "DOUBLE")
     arcpy.AddField_management(feature,'utmzone','TEXT')
-    arcpy.AddField_management(feature,'xdist','DOUBLE')
-    arcpy.AddField_management(feature,'ydist','DOUBLE')
 
 def createPolygon(incoordinates):
     """takes lat lon incoordinates and returns an arcpy polygon"""
