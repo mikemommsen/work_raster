@@ -242,7 +242,7 @@ def findurl(inraster):
     """takes a path to a raster and returns the url for the metadata"""
     # this could be a good function to read in the web data and tell 
     # us if the url correct and try other urls if the first on that is made doesnt work
-    urlTempalte = 'http://earthexplorer.usgs.gov/metadata/{0}/{1}'
+    urlTemplate = 'http://earthexplorer.usgs.gov/metadata/{0}/{1}'
     basepath, filename = os.path.split(inraster)
     basefilename, extension = os.path.splitext(filename)
     upperbasefilename = basefilename.upper()
@@ -251,7 +251,7 @@ def findurl(inraster):
     elif 'NHAP' in upperbasefilename:
         metadatadir = '4663'
     else:
-        metdatadir = '4660'
+        metadatadir = '4660'
         if upperbasefilename[:2] != 'AR':
             upperbasefilename = 'AR' + upperbasefilename
     url = urlTemplate.format(metadatadir, upperbasefilename)
