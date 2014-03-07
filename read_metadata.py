@@ -13,34 +13,18 @@ from PIL import Image
 import arcpy
 
 wgs84 = arcpy.SpatialReference('WGS 1984')
-
-
 # keys are utm names, values are the wkid needed in the aux file
 WKID_DICT = {
-    "NAD 1983 UTM Zone 11N": "26911", 
-    "NAD 1983 UTM Zone 13N": "26913", 
-    "NAD 1983 UTM Zone 17N": "26917", 
-    "NAD 1983 UTM Zone 15N": "26915", 
-    "NAD 1983 UTM Zone 19N": "26919", 
-    "NAD 1983 UTM Zone 22N": "26922", 
-    "NAD 1983 UTM Zone 9N": "26909", 
-    "NAD 1983 UTM Zone 2N": "26902", 
-    "NAD 1983 UTM Zone 20N": "26920", 
-    "NAD 1983 UTM Zone 8N": "26908", 
-    "NAD 1983 UTM Zone 4N": "26904", 
-    "NAD 1983 UTM Zone 6N": "26906", 
     "NAD 1983 UTM Zone 10N": "26910", 
-    "NAD 1983 UTM Zone 14N": "26914", 
+    "NAD 1983 UTM Zone 11N": "26911", 
     "NAD 1983 UTM Zone 12N": "26912", 
+    "NAD 1983 UTM Zone 13N": "26913", 
+    "NAD 1983 UTM Zone 14N": "26914", 
+    "NAD 1983 UTM Zone 15N": "26915", 
     "NAD 1983 UTM Zone 16N": "26916", 
-    "NAD 1983 UTM Zone 21N": "26921", 
-    "NAD 1983 UTM Zone 23N": "26923", 
+    "NAD 1983 UTM Zone 17N": "26917", 
     "NAD 1983 UTM Zone 18N": "26918", 
-    "NAD 1983 UTM Zone 3N": "26903", 
-    "NAD 1983 UTM Zone 7N": "26907", 
-    "NAD 1983 UTM Zone 1N": "26901", 
-    "NAD 1983 UTM Zone 5N": "26905"
-}
+    "NAD 1983 UTM Zone 19N": "26919"}
 PROJ_DICT = {
     "NAD 1983 UTM Zone 10N": "PROJCS[&quot;NAD_1983_UTM_Zone_10N&quot;,GEOGCS[&quot;GCS_North_American_1983&quot;,DATUM[&quot;D_North_American_1983&quot;,SPHEROID[&quot;GRS_1980&quot;,6378137.0,298.257222101]],PRIMEM[&quot;Greenwich&quot;,0.0],UNIT[&quot;Degree&quot;,0.0174532925199433]],PROJECTION[&quot;Transverse_Mercator&quot;],PARAMETER[&quot;False_Easting&quot;,500000.0],PARAMETER[&quot;False_Northing&quot;,0.0],PARAMETER[&quot;Central_Meridian&quot;,-123.0],PARAMETER[&quot;Scale_Factor&quot;,0.9996],PARAMETER[&quot;Latitude_Of_Origin&quot;,0.0],UNIT[&quot;Meter&quot;,1.0],AUTHORITY[&quot;EPSG&quot;,26910]]\n", 
     "NAD 1983 UTM Zone 11N": "PROJCS[&quot;NAD_1983_UTM_Zone_11N&quot;,GEOGCS[&quot;GCS_North_American_1983&quot;,DATUM[&quot;D_North_American_1983&quot;,SPHEROID[&quot;GRS_1980&quot;,6378137.0,298.257222101]],PRIMEM[&quot;Greenwich&quot;,0.0],UNIT[&quot;Degree&quot;,0.0174532925199433]],PROJECTION[&quot;Transverse_Mercator&quot;],PARAMETER[&quot;False_Easting&quot;,500000.0],PARAMETER[&quot;False_Northing&quot;,0.0],PARAMETER[&quot;Central_Meridian&quot;,-117.0],PARAMETER[&quot;Scale_Factor&quot;,0.9996],PARAMETER[&quot;Latitude_Of_Origin&quot;,0.0],UNIT[&quot;Meter&quot;,1.0],AUTHORITY[&quot;EPSG&quot;,26911]]\n", 
@@ -114,7 +98,7 @@ def readmetadatatable(url):
     try:
         from bs4 import BeautifulSoup
     except ImportError as e:
-        arcpy.AddMessage('you need bs4 installed to read the internet')
+        arcpy.AddMessage('you need bs4 installed to read the internet\n. not really but mike isnt smart enough for that')
         print e
         sys.exit(1)
     mydict = {}
@@ -165,7 +149,8 @@ def createPolygon(incoordinates):
     return poly
     
 def createUtmCoords(poly, utmname):
-    """"""
+    """takes an arcpy poly with 4 corners and returns a nice field dict to populate the table
+    or to make the output aux file, or maybe link table"""
     utmsref = arcpy.SpatialReference(utmname)
     utmpoly = poly.projectAs(utmsref)
     utmcoords = {}
