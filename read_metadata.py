@@ -11,6 +11,7 @@ from collections import OrderedDict
 import string
 import arcpy
 
+# this is used by multiple functions so we are saving it as global
 wgs84 = arcpy.SpatialReference('WGS 1984')
 # keys are utm names, values are the wkid needed in the aux file
 WKID_DICT = {
