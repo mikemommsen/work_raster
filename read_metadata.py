@@ -219,9 +219,12 @@ def getsizePIL(inraster):
     
 def getsize(inraster):
     """gets the size of the raster using arcpy"""
-    desc = arcpy.Describe(inraster)
-    return desc.width, desc.height
-    
+    try:
+        desc = arcpy.Describe(inraster)
+        return desc.width, desc.height
+    except:
+        return getsizePIL(inraster)
+        
 def getutmzone(lon):
     """takes a wgs84 longitude and returns the utm zone"""
     utmnumber = 30 - int(lon * -1) / 6
