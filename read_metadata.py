@@ -39,8 +39,6 @@ PROJ_DICT = {
     "NAD 1983 UTM Zone 18N": "PROJCS[&quot;NAD_1983_UTM_Zone_18N&quot;,GEOGCS[&quot;GCS_North_American_1983&quot;,DATUM[&quot;D_North_American_1983&quot;,SPHEROID[&quot;GRS_1980&quot;,6378137.0,298.257222101]],PRIMEM[&quot;Greenwich&quot;,0.0],UNIT[&quot;Degree&quot;,0.0174532925199433]],PROJECTION[&quot;Transverse_Mercator&quot;],PARAMETER[&quot;False_Easting&quot;,500000.0],PARAMETER[&quot;False_Northing&quot;,0.0],PARAMETER[&quot;Central_Meridian&quot;,-75.0],PARAMETER[&quot;Scale_Factor&quot;,0.9996],PARAMETER[&quot;Latitude_Of_Origin&quot;,0.0],UNIT[&quot;Meter&quot;,1.0],AUTHORITY[&quot;EPSG&quot;,26918]]\n", 
     "NAD 1983 UTM Zone 19N": "PROJCS[&quot;NAD_1983_UTM_Zone_19N&quot;,GEOGCS[&quot;GCS_North_American_1983&quot;,DATUM[&quot;D_North_American_1983&quot;,SPHEROID[&quot;GRS_1980&quot;,6378137.0,298.257222101]],PRIMEM[&quot;Greenwich&quot;,0.0],UNIT[&quot;Degree&quot;,0.0174532925199433]],PROJECTION[&quot;Transverse_Mercator&quot;],PARAMETER[&quot;False_Easting&quot;,500000.0],PARAMETER[&quot;False_Northing&quot;,0.0],PARAMETER[&quot;Central_Meridian&quot;,-69.0],PARAMETER[&quot;Scale_Factor&quot;,0.9996],PARAMETER[&quot;Latitude_Of_Origin&quot;,0.0],UNIT[&quot;Meter&quot;,1.0],AUTHORITY[&quot;EPSG&quot;,26919]]\n"
     }
-# re to find the rinds g ring coords in fgdc metadata
-G_RING_MATCHER = r'G-Ring_(Latitude|Longitude):\s*([-+]?\d*\.\d+|\d+)'
 
 #the keys for the corners in the table metadata
 CORNERS = OrderedDict({
@@ -90,10 +88,11 @@ def readcoordinatesfdgc(url):
 the format for the points right now is a list with four tuples of latitude and longitude in decimal degrees.
 a more logical way would be a point from a program that can be written in wkt, wkb, geojson etc
 maybe we can find something for that"""
+    gRingMatcher = r'G-Ring_(Latitude|Longitude):\s*([-+]?\d*\.\d+|\d+)'
     mydict = {}
     f = urllib2.urlopen(url)
     content = f.read()
-    mylist = re.findall(G_RING_MATCHER, content)
+    mylist = re.findall(gRingMatcher, content)
     print mylist
     Latitudes = [float(y) for x, y in mylist if x == 'Latitude']
     Longitudes = [float(y) for x, y in mylist if x == 'Longitude']
