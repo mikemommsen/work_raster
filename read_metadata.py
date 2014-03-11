@@ -255,6 +255,8 @@ def findurl(inraster):
         metadatadir = '4662'
     elif 'NHAP' in upperbasefilename:
         metadatadir = '4663'
+    elif upperbasefilename[:2] == 'DS':
+        metadatadir = '1051'
     else:
         metadatadir = '4660'
         if upperbasefilename[:2] != 'AR':
