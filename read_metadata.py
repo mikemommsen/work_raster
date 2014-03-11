@@ -52,7 +52,8 @@ CORNERS = OrderedDict({
            
 # list of the fields that i think would be nice in the output
 # this is a dictionary with the key being the name that is in the metadata and the value the name that is shapefile safe
-FIELDS = OrderedDict({'Entity  ID':'title', 
+FIELDS = OrderedDict({
+          'Entity  ID':'title', 
           'Agency':'Agency', 
           'Recording Technique':'rec_tech', 
           'Project':'Project', 
@@ -67,7 +68,8 @@ FIELDS = OrderedDict({'Entity  ID':'title',
           'Flying Height in Feet':'heightFt', 
           'Film Length and Width':'filmsize',
           'Focal Length':'focallen', 
-          'Stereo Overlap':'overlap'})
+          'Stereo Overlap':'overlap'
+          })
            
 def readmetadatafgdc(url):
     """reads the fgdc metadata - not sure if this is going to be used very much
