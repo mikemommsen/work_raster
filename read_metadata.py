@@ -42,32 +42,32 @@ PROJ_DICT = {
 
 #the keys for the corners in the table metadata
 CORNERS = OrderedDict({
-           'NW': ('NW Corner Lat dec', 'NW Corner Long dec'),
-           'NE': ('NE Corner Lat dec', 'NE Corner Long dec'),
-           'SE': ('SE Corner Lat dec', 'SE Corner Long dec'),
-           'SW': ('SW Corner Lat dec', 'SW Corner Long dec')
-           })
+    'NW': ('NW Corner Lat dec', 'NW Corner Long dec'),
+    'NE': ('NE Corner Lat dec', 'NE Corner Long dec'),
+    'SE': ('SE Corner Lat dec', 'SE Corner Long dec'),
+    'SW': ('SW Corner Lat dec', 'SW Corner Long dec')
+    })
            
 # list of the fields that i think would be nice in the output
 # this is a dictionary with the key being the name that is in the metadata and the value the name that is shapefile safe
 FIELDS = OrderedDict({
-          'Entity  ID':'title', 
-          'Agency':'Agency', 
-          'Recording Technique':'rec_tech', 
-          'Project':'Project', 
-          'Roll': 'Roll', 
-          'Frame': 'Frame', 
-          'Acquisition Date':'Acqdate', 
-          'Scale':'scale',  
-          'Image Type':'imgtype', 
-          'Quality':'Quality', 
-          'Cloud Cover':'cloudcover', 
-          'Photo ID':'photoid', 
-          'Flying Height in Feet':'heightFt', 
-          'Film Length and Width':'filmsize',
-          'Focal Length':'focallen', 
-          'Stereo Overlap':'overlap'
-          })
+    'Entity  ID':'title', 
+    'Agency':'Agency', 
+    'Recording Technique':'rec_tech', 
+    'Project':'Project', 
+    'Roll': 'Roll', 
+    'Frame': 'Frame', 
+    'Acquisition Date':'Acqdate', 
+    'Scale':'scale',  
+    'Image Type':'imgtype', 
+    'Quality':'Quality', 
+    'Cloud Cover':'cloudcover', 
+    'Photo ID':'photoid', 
+    'Flying Height in Feet':'heightFt', 
+    'Film Length and Width':'filmsize',
+    'Focal Length':'focallen', 
+    'Stereo Overlap':'overlap'
+    })
            
 def readmetadatafgdc(url):
     """reads the fgdc metadata - not sure if this is going to be used very much
