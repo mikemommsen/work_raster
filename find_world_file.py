@@ -17,7 +17,7 @@ def copygeoreferenced(indir, outdir, worldfiles):
     """"""
     allfiles = os.listdir('.') # pretty sure that dir is changed for us!!
     for x in allfiles:
-        base, extension = os.path.splitext(x)
+        base = x.split('.')[0]
         if base in worldfiles:
             outpath = os.path.join(outdir, x)
             shutil.copyfile(x, outpath)
