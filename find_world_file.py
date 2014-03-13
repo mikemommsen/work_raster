@@ -19,4 +19,13 @@ def copygeoreferenced(indir, outdir):
         base, extension = os.path.splitext(x)
         if base in worldfiles:
             outpath = os.path.join(outdir, x)
-            shutil.copy(x, outpath)
+            shutil.copyfile(x, outpath)
+
+def main():
+    indir = r'I:\Aerials\MO\County\Pemiscot\Pemiscot59' #sys.argv[1]
+    outdir = r'J:\GIS_Data\Working-MikeM\production\142358\1959' #sys.argv[2]
+    copygeoreferenced(indir, outdir)
+    print True
+
+if __name__ == "__main__":
+    main()
