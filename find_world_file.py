@@ -1,7 +1,7 @@
 #mike mommsen
 import os
 import shutil
-WORLDNAMES = ['.jgw', 'jgwx', '.tfw'] # add more later
+WORLDNAMES = ['.jgw', '.jgwx', '.tfw'] # add more later
 
 def findworldfiles(indir):
     """"""
