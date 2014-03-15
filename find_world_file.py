@@ -18,9 +18,13 @@ def walkDir(indir):
     allfiles = [os.path.join(indir, x) for x in os.listdir(indir)]
     for x in allfiles:
         if os.path.isdir(x):
-            walkDir(x)
+            mylist += walkDir(x)
         else:
-            base, extension = os.path.splitext(x)
+            basepath, filename = os.path.split(x)
+            baseFileName, extension = os.path.splitext(filename)
+            if extension in WORLDNAMES:
+                mylist.append(x)
+    return mylist
             
 
 def copyFromBaseNames(indir, outdir, baseNames):
