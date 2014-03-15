@@ -15,7 +15,8 @@ def findWorldFiles(indir):
             outname = os.path.join(indir, base)
             mylist.append(outname)
     return mylist
-    
+
+# we should also think about os.walk, but I don't really love it all that much to be honest    
 def walkDir(indir):
     """takes a directory, digs through it and its subdirs and returns files with world files"""
     mylist = []
