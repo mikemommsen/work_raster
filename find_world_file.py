@@ -13,7 +13,7 @@ def findWorldFiles(indir):
     return mylist
     
 def walkDir(indir):
-    """"""
+    """takes a directory, digs through it and its subdirs and returns files with world files"""
     mylist = []
     allfiles = [os.path.join(indir, x) for x in os.listdir(indir)]
     for x in allfiles:
