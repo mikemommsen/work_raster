@@ -9,7 +9,8 @@ def findWorldFiles(indir):
     allfiles = [os.path.splitext(x) for x in os.listdir(indir)]
     for base, extension in allfiles:
         if extension in WORLDNAMES:
-            mylist.append(base)
+            outname = os.path.join(indir, base)
+            mylist.append(outname)
     return mylist
     
 def walkDir(indir):
@@ -23,9 +24,9 @@ def walkDir(indir):
             basepath, filename = os.path.split(x)
             baseFileName, extension = os.path.splitext(filename)
             if extension in WORLDNAMES:
-                mylist.append(x)
+                outname = os.path.join(basepath, baseFileName)
+                mylist.append(outname)
     return mylist
-            
 
 def copyFromBaseNames(indir, outdir, baseNames):
     """takes a list of basenames and copys every extension of those files from indir to outdir"""
