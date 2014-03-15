@@ -3,7 +3,7 @@ import os
 import shutil
 WORLDNAMES = ['.jgw', '.jgwx', '.tfw'] # add more later
 
-def findworldfiles(indir):
+def findWorldFiles(indir):
     """"""
     mylist = []
     os.chdir(indir)
@@ -12,8 +12,11 @@ def findworldfiles(indir):
         if extension in WORLDNAMES:
             mylist.append(base)
     return mylist
+    
+def walkDir(indir):
+    """"""
 
-def copygeoreferenced(indir, outdir, worldfiles):
+def copyFromBaseNames(indir, outdir, baseNames):
     """"""
     allfiles = os.listdir('.') # pretty sure that dir is changed for us!!
     for x in allfiles:
@@ -26,8 +29,8 @@ def main():
     """"""
     indir = r'I:\Aerials\MO\County\Pemiscot\Pemiscot59' #sys.argv[1]
     outdir = r'J:\GIS_Data\Working-MikeM\production\142358\1959' #sys.argv[2]
-    worldfiles = findworldfiles(indir)
-    copygeoreferenced(indir, outdir, worldfiles)
+    worldfiles = findWorldFiles(indir)
+    copyFromBaseNames(indir, outdir, worldfiles)
     print True
 
 if __name__ == "__main__":
