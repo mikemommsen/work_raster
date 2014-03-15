@@ -4,7 +4,7 @@ import shutil
 WORLDNAMES = ['.jgw', '.jgwx', '.tfw'] # add more later
 
 def findWorldFiles(indir):
-    """"""
+    """finds all of the files that have a world file in the indir and returns a list of the basenames"""
     mylist = []
     os.chdir(indir)
     allfiles = [os.path.splitext(x) for x in os.listdir('.')]
@@ -17,8 +17,8 @@ def walkDir(indir):
     """"""
 
 def copyFromBaseNames(indir, outdir, baseNames):
-    """"""
-    allfiles = os.listdir('.') # pretty sure that dir is changed for us!!
+    """takes a list of basenames and copys every extension of those files from indir to outdir"""
+    allfiles = os.listdir('.')
     for x in allfiles:
         base = x.split('.')[0]
         if base in worldfiles:
