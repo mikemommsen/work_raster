@@ -1,7 +1,10 @@
 #mike mommsen
 import os
 import shutil
-WORLDNAMES = ['.jgw', '.jgwx', '.tfw'] # add more later
+
+# list of extensions for world files
+# we can add more later, or maybe look for "w" in the extension
+WORLDNAMES = ['.jgw', '.jgwx', '.tfw']
 
 def findWorldFiles(indir):
     """finds all of the files that have a world file in the indir and returns a list of the basenames"""
@@ -27,6 +30,8 @@ def walkDir(indir):
                 outname = os.path.join(basepath, baseFileName)
                 mylist.append(outname)
     return mylist
+    
+# because we are doing the walk we should allow for a copy flat and a copy hierarchy option
 
 def copyFromBaseNames(indir, outdir, baseNames):
     """takes a list of basenames and copys every extension of those files from indir to outdir"""
