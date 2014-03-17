@@ -15,23 +15,18 @@ def findWorldFiles(indir):
             outname = os.path.join(indir, base)
             mylist.append(outname)
     return mylist
-
-# we should also think about os.walk, but I don't really love it all that much to be honest    
-def walkDir(indir):
-    """takes a directory, digs through it and its subdirs and returns files with world files"""
-    mylist = []
-    allfiles = [os.path.join(indir, x) for x in os.listdir(indir)]
-    for x in allfiles:
-        if os.path.isdir(x):
-            mylist += walkDir(x)
-        else:
-            basepath, filename = os.path.split(x)
-            baseFileName, extension = os.path.splitext(filename)
-            if extension in WORLDNAMES:
-                outname = os.path.join(basepath, baseFileName)
-                mylist.append(outname)
-    return mylist
     
+def walkDir(indir):
+    """"""
+    mylist = []
+    for root, dirs, files in os.walk(indir):
+        for x in files:
+            basename, extension = os.path.splitext(x)
+            if extension in WORLDNAMES:
+                path = os.path.join(root, x)
+                mylist.append(path)
+    return mylist
+
 # because we are doing the walk we should allow for a copy flat and a copy hierarchy option
 
 def copyFromBaseNames(indir, outdir, baseNames):
