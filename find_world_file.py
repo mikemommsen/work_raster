@@ -23,17 +23,16 @@ def walkDir(indir):
     keyfunc = lambda x: x.split('.')[0]
     mylist = []
     for root, dirs, files in os.walk(indir):
+        # create a group object that groups
         grouper = groupby(files, keyfunc)
         for key, group in grouper:
             for x in group:
                 basename, extension = os.path.splitext(x)
                 if extension in WORLDNAMES:
-                    mylist.append(group)
-                path = os.path.join(root, basename)
-                mylist.append((root, basename))
+                    outgroup = [os.path.join(root, x) for x in group]
+                    mylist.append(outgroup)
+                    break
     return mylist
-    
-
 
 def copyFileList(inlist, outdir):
     """takes a list of files and copies them to the outdir leaving the names the same"""
