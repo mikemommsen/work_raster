@@ -1,10 +1,12 @@
 #mike mommsen
 import os
 import shutil
+from itertools import groupby
 
 # list of extensions for world files
 # we can add more later, or maybe look for "w" in the extension
 WORLDNAMES = ['.jgw', '.jgwx', '.tfw']
+
 
 def findWorldFiles(indir):
     """finds all of the files that have a world file in the indir and returns a list of the basenames"""
@@ -18,14 +20,28 @@ def findWorldFiles(indir):
     
 def walkDir(indir):
     """"""
+    keyfunc = lambda x: x.split('.')[0]
     mylist = []
     for root, dirs, files in os.walk(indir):
-        for x in files:
-            basename, extension = os.path.splitext(x)
-            if extension in WORLDNAMES:
-                path = os.path.join(root, x)
-                mylist.append(path)
+        grouper = groupby(files, keyfunc)
+        for key, group in grouper:
+            for x in group:
+                basename, extension = os.path.splitext(x)
+                if extension in WORLDNAMES:
+                    mylist.append(group)
+                path = os.path.join(root, basename)
+                mylist.append((root, basename))
     return mylist
+    
+
+
+def copyFileList(inlist, outdir):
+    """takes a list of files and copies them to the outdir leaving the names the same"""
+    for x in inlist:
+        basepath, filename = os.path.split(x)
+        dst = os.path.join(outdir, filename)
+        shutil.copy(x, dst)
+    return True
 
 # because we are doing the walk we should allow for a copy flat and a copy hierarchy option
 
