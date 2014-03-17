@@ -6,32 +6,30 @@ from itertools import groupby
 # list of extensions for world files
 # we can add more later, or maybe look for "w" in the extension
 WORLDNAMES = ['.jgw', '.jgwx', '.tfw']
-
-
-def findWorldFiles(indir):
-    """finds all of the files that have a world file in the indir and returns a list of the basenames"""
-    mylist = []
-    allfiles = [os.path.splitext(x) for x in os.listdir(indir)]
-    for base, extension in allfiles:
-        if extension in WORLDNAMES:
-            outname = os.path.join(indir, base)
-            mylist.append(outname)
-    return mylist
     
+def findWorldFiles(inlist):
+    """takes a list of files and returns the ones that have a world file"""
+    keyfunc = lambda x: x.split('.')[0]
+    mylist = []
+    # lets check into if it has to be sorted or something like that
+    grouper = group(inlist, keyfunc)
+    for key, g in grouper:
+        for x in g:
+            basename, extension = os.path.splitext(x)
+            if extension in WORLDNAMES:
+                mylist += list(g)
+                break
+    return mylist
+
 def walkDir(indir):
     """"""
     keyfunc = lambda x: x.split('.')[0]
     mylist = []
     for root, dirs, files in os.walk(indir):
         # create a group object that groups
-        grouper = groupby(files, keyfunc)
-        for key, group in grouper:
-            for x in group:
-                basename, extension = os.path.splitext(x)
-                if extension in WORLDNAMES:
-                    outgroup = [os.path.join(root, x) for x in group]
-                    mylist.append(outgroup)
-                    break
+        basefiles = findWorldFiles(files)
+        fullnames = [os.path.join(root, x) for x in basefiles]
+        mylist += fullnames
     return mylist
 
 def copyFileList(inlist, outdir):
