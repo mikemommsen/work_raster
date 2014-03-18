@@ -5,14 +5,14 @@ from itertools import groupby
 
 # list of extensions for world files
 # we can add more later, or maybe look for "w" in the extension
-WORLDNAMES = ['.jgw', '.jgwx', '.tfw']
+WORLDNAMES = ['.jgw', '.jgwx', '.tfw', '.tfwx']
     
 def findWorldFiles(inlist):
     """takes a list of files and returns the ones that have a world file"""
     keyfunc = lambda x: x.split('.')[0]
     mylist = []
     # lets check into if it has to be sorted or something like that
-    grouper = group(inlist, keyfunc)
+    grouper = groupby(inlist, keyfunc)
     for key, g in grouper:
         for x in g:
             basename, extension = os.path.splitext(x)
@@ -53,11 +53,17 @@ def copyFromBaseNames(indir, outdir, baseNames):
             shutil.copyfile(src, dst)
 
 def main():
+    # lets make this so we can run both one dir, or the entire
     """"""
-    indir = r'I:\Aerials\MO\County\Pemiscot\Pemiscot59' #sys.argv[1]
-    outdir = r'J:\GIS_Data\Working-MikeM\production\142358\1959' #sys.argv[2]
-    worldfiles = findWorldFiles(indir)
-    copyFromBaseNames(indir, outdir, worldfiles)
+    indir = r'I:\Aerials\CA\County\LosAngeles' #sys.argv[1]
+    outdir = r'J:\GIS_Data\Working-MikeM\production\los_angeles' #sys.argv[2]
+    if not os.path.exists(outdir):
+        os.mkdir(outdir)
+    allfiles = os.listdir(indir)
+    worldfiles = walkDir(indir)
+    print worldfiles
+    #fullpathworldfiles = [os.path.join(indir, x) for x in worldfiles]
+    copyFileList(worldfiles, outdir)
     print True
 
 if __name__ == "__main__":
