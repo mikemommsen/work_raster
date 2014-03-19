@@ -7,12 +7,12 @@ from itertools import groupby
 # we can add more later, or maybe look for "w" in the extension
 WORLDNAMES = ['.jgw', '.jgwx', '.tfw', '.tfwx']
     
-def findWorldFiles(inlist):
+def findWorldFiles(indir, inlist):
     """takes a list of files and returns the ones that have a world file"""
     keyfunc = lambda x: x.split('.')[0]
     mylist = []
     # lets check into if it has to be sorted or something like that
-    grouper = groupby(inlist, keyfunc)
+    grouper = groupby(indir, inlist, keyfunc)
     for key, g in grouper:
         for x in g:
             basename, extension = os.path.splitext(x)
@@ -27,7 +27,7 @@ def walkDir(indir):
     mylist = []
     for root, dirs, files in os.walk(indir):
         # create a group object that groups
-        basefiles = findWorldFiles(files)
+        basefiles = findWorldFiles(root, files)
         fullnames = [os.path.join(root, x) for x in basefiles]
         mylist += fullnames
     return mylist
@@ -57,12 +57,17 @@ def main():
     """"""
     indir = r'I:\Aerials\CA\County\LosAngeles' #sys.argv[1]
     outdir = r'J:\GIS_Data\Working-MikeM\production\los_angeles' #sys.argv[2]
+    readmode = 'r' | '' #sys.argv[3]
+    writemode = 'r' | '' # sys.argv[4]
     if not os.path.exists(outdir):
         os.mkdir(outdir)
     allfiles = os.listdir(indir)
-    worldfiles = walkDir(indir)
+    if readmode == 'r':
+        worldfiles = walkDir(indir)
+    else:
+        allfiles = os.listdir(indir)
+        worldfiles = findWorldFiles(indir, allfiles)
     print worldfiles
-    #fullpathworldfiles = [os.path.join(indir, x) for x in worldfiles]
     copyFileList(worldfiles, outdir)
     print True
 
