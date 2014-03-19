@@ -23,7 +23,6 @@ def findWorldFiles(indir, inlist):
 
 def walkDir(indir):
     """"""
-    keyfunc = lambda x: x.split('.')[0]
     mylist = []
     for root, dirs, files in os.walk(indir):
         # create a group object that groups
@@ -39,7 +38,18 @@ def copyFileList(inlist, outdir):
         dst = os.path.join(outdir, filename)
         shutil.copy(x, dst)
     return True
-
+    
+def copyFileListHierarchy(indir, outdir):
+    """"""
+    mylist = []
+    for root, dirs, files in os.walk(indir):
+        basefiles = findWorldFiles(root, files)
+        if basefiles:
+            outfilename = root[len(indir):]
+            outpath = os.path.join(outdir, outfilename)
+            os.mkdir(outpath)
+            copyFileList(basefiles, outpath)
+            print True
 # because we are doing the walk we should allow for a copy flat and a copy hierarchy option
 
 def copyFromBaseNames(indir, outdir, baseNames):
