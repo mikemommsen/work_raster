@@ -7,12 +7,17 @@ class LinearScale:
     def __init__(self, domain=[0,1], outrange=[0,1], limit=False):
         """"""
         self.domain = domain
+        self.domainExtent = domain[1] - domain[0]
+        self.outrangeExtent = outrange[1] - outrange[0]
         self.outrange = outrange
         self.limitDomain = limitDomain
         self.limitOutRange = limitOutRange
     
     def get(inval):
         """"""
+        if limit:
+            assert domain[0] < inval < domain[1], 'needs to be inside the domain when limit is set to true'
+            
 
 def getcorners(inPoint, mapwidth, mapheight, scale):
     """takes the upper left corner and returns a polygon """
