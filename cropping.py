@@ -2,7 +2,14 @@ import sys
 import os
 import arcpy
 
-def getcorners
+def getcorners(inPoint, mapwidth, mapheight, scale):
+    """"""
+    surfacewidth = mapwidth * scale
+    surfaceheight = mapheight * scale
+    nw = inPoint.X, inPoint.Y
+    ne = inPoint.X, inPoint.Y
+    se = inPoint.X, inPoint.Y
+    sw = inPoint.X, inPoint.Y
 
 def main():
     arg1 = sys.argv[1]
