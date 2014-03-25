@@ -36,7 +36,17 @@ def changeCorners(inPoint, mapwidth, mapheight, scale, inPointCorner, outPointCo
     """"""
     surfacewidth = mapwidth * scale
     surfaceheight = mapheight * scale
-    if 
+    if inPointCorner == 'C':
+        
+    elif inPointCorner == 'NW':
+        
+    elif inPointCorner == 'NE':
+    
+    elif inPointCorner == 'SE':
+        
+    elif inPointCorner == 'SW':
+    
+        
 
 def main():
     arg1 = sys.argv[1]
