@@ -6,6 +6,11 @@ class LinearScale:
     """"""
     def __init__(self, domain=[0,1], outrange=[0,1], limit=False):
         """"""
+        if type(domain) == int:
+            domain = [0, domain]
+        if type(outrange) == int:
+            outrange = [0, outrange]
+        
         self.domain = domain
         self.outrange = outrange
         self.domainExtent = domain[1] - domain[0]
