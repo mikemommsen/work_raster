@@ -20,14 +20,12 @@ class LinearScale:
         """"""
         if self.limit:
             assert self.domain[0] < inval < self.domain[1], 'needs to be inside the domain when limit is set to true'
-        indiff = inval - self.domain[0]
+        indiff = float(inval - self.domain[0])
         inz = indiff / self.domainExtent
         outz = inz * self.outrangeExtent
         outval = outz + self.outrange[0]
         return outval
         
-            
-
 def polyFromPoint(inPoint, mapwidth, mapheight, scale):
     """takes the upper left corner and returns a polygon """
     array = arcpy.array
