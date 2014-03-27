@@ -26,6 +26,11 @@ class LinearScale:
         outval = outz + self.outrange[0]
         return outval
         
+class MapDocument:
+    """"""
+    def __init__(self, width=8, height=9, scale=6000, nwCorner=[0,0]):
+        
+        
 def polyFromPoint(inPoint, mapwidth, mapheight, scale):
     """takes the upper left corner and returns a polygon """
     array = arcpy.array
