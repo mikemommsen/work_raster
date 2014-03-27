@@ -2,6 +2,9 @@ import sys
 import os
 import arcpy
 
+INCHESPERMETER = 39.3701
+INCHESPERFOOT = 12
+
 class LinearScale:
     """"""
     def __init__(self, domain=[0,1], outrange=[0,1], limit=False):
@@ -26,7 +29,7 @@ class LinearScale:
         outval = outz + self.outrange[0]
         return outval
         
-class ScaleTwoDimensions:
+class ScaleTwoDimensions(object):
     """"""
     def __init__(self, domainX=[0,1], domainY=[0,1], outrangeX=[0,1], outrangeY=[0,1], limit=False):
         """"""
@@ -40,13 +43,20 @@ class ScaleTwoDimensions:
         return (x, y)
         
         
-class MapDocument:
+class MapDocument(ScaleTwoDimensions):
     """"""
     def __init__(self, width=8, height=9, scale=6000, nwCorner=[0,0]):
         self.width = width
         self.height = height
         self.scale = scale
         self.nwCorner = nwCorner
+        meterscale = scale / INCHESPERMETER
+        meterwidth = width * meterscale
+        meterheight = height * meterscale
+        leftedge = x[0] + meterwidth
+        bottomedge = x[1] - meterheight
+        super(init(width, height, [nwCorner[0],leftedge],[nwCorner[1], bottomedge] ))# look up the syntax for this shit - its pretty cool though
+        
         
     def makeCorners(self):
         self.
