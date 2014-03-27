@@ -26,9 +26,30 @@ class LinearScale:
         outval = outz + self.outrange[0]
         return outval
         
+class ScaleTwoDimensions:
+    """"""
+    def __init__(self, domainX=[0,1], domainY=[0,1], outrangeX=[0,1], outrangeY=[0,1], limit=False):
+        """"""
+        self.scaleX = LinearScale(domainX, outrangeX, limit)
+        self.scaleY = LinearScale(domainY, outrangeY, limit)
+        
+    def get(self, invalX, invalY):
+        """"""
+        x = self.scaleX.get(invalX)
+        y = self.scaleY.get(invalY)
+        return (x, y)
+        
+        
 class MapDocument:
     """"""
     def __init__(self, width=8, height=9, scale=6000, nwCorner=[0,0]):
+        self.width = width
+        self.height = height
+        self.scale = scale
+        self.nwCorner = nwCorner
+        
+    def makeCorners(self):
+        self.
         
         
 def polyFromPoint(inPoint, mapwidth, mapheight, scale):
