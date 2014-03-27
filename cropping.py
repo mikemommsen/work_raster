@@ -14,12 +14,11 @@ class LinearScale:
         self.outrange = outrange
         self.domainExtent = domain[1] - domain[0]
         self.outrangeExtent = outrange[1] - outrange[0]
-        self.limitDomain = limitDomain
-        self.limitOutRange = limitOutRange
+        self.limit = limit
     
     def get(self, inval):
         """"""
-        if limit:
+        if self.limit:
             assert self.domain[0] < inval < self.domain[1], 'needs to be inside the domain when limit is set to true'
         indiff = inval - self.domain[0]
         inz = indiff / self.domainExtent
