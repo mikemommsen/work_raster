@@ -42,6 +42,10 @@ class ScaleTwoDimensions(object):
         y = self.scaleY.get(invalY)
         return (x, y)
         
+class Corners:
+    """"""
+    def __init__(self, 
+        
         
 class MapDocument(ScaleTwoDimensions):
     """"""
@@ -50,8 +54,8 @@ class MapDocument(ScaleTwoDimensions):
         self.height = height
         self.scale = scale
         meterscale = scale / INCHESPERMETER
-        meterwidth = width * meterscale
-        meterheight = height * meterscale
+        self.meterwidth = meterwidth = width * meterscale
+        self.meterheight = meterheight = height * meterscale
         rightedge = x[0]
         topedge = x[1]
         leftedge = x[0] + meterwidth
@@ -62,6 +66,10 @@ class MapDocument(ScaleTwoDimensions):
     def makeCorners(self):
         """"""
         self.
+        
+    def writeShapefile(self):
+        """"""
+        
         
         
 def polyFromPoint(inPoint, mapwidth, mapheight, scale):
