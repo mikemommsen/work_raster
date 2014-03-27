@@ -55,7 +55,7 @@ class MapDocument(ScaleTwoDimensions):
         meterheight = height * meterscale
         leftedge = x[0] + meterwidth
         bottomedge = x[1] - meterheight
-        super(init(width, height, [nwCorner[0],leftedge],[nwCorner[1], bottomedge] ))# look up the syntax for this shit - its pretty cool though
+        super(self.__class__, self).__init__(width, height, [nwCorner[0],leftedge],[nwCorner[1], bottomedge])# look up the syntax for this shit - its pretty cool though
         
         
     def makeCorners(self):
