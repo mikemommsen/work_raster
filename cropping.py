@@ -10,7 +10,6 @@ class LinearScale:
             domain = [0, domain]
         if type(outrange) == int:
             outrange = [0, outrange]
-        
         self.domain = domain
         self.outrange = outrange
         self.domainExtent = domain[1] - domain[0]
@@ -18,10 +17,16 @@ class LinearScale:
         self.limitDomain = limitDomain
         self.limitOutRange = limitOutRange
     
-    def get(inval):
+    def get(self, inval):
         """"""
         if limit:
-            assert domain[0] < inval < domain[1], 'needs to be inside the domain when limit is set to true'
+            assert self.domain[0] < inval < self.domain[1], 'needs to be inside the domain when limit is set to true'
+        indiff = inval - self.domain[0]
+        inz = indiff / self.domainExtent
+        outz = inz * self.outrangeExtent
+        outval = outz + self.outrange[0]
+        return outval
+        
             
 
 def polyFromPoint(inPoint, mapwidth, mapheight, scale):
