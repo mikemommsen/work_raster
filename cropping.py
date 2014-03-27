@@ -49,16 +49,18 @@ class MapDocument(ScaleTwoDimensions):
         self.width = width
         self.height = height
         self.scale = scale
-        self.nwCorner = nwCorner
         meterscale = scale / INCHESPERMETER
         meterwidth = width * meterscale
         meterheight = height * meterscale
+        rightedge = x[0]
+        topedge = x[1]
         leftedge = x[0] + meterwidth
         bottomedge = x[1] - meterheight
+        self.corners = {'nw': nwCorner,'ne': [topedge,leftedge],'se': [bottomedge,leftedge],'sw': [bottomedge,rightedge]}
         super(self.__class__, self).__init__(width, height, [nwCorner[0],leftedge],[nwCorner[1], bottomedge])# look up the syntax for this shit - its pretty cool though
         
-        
     def makeCorners(self):
+        """"""
         self.
         
         
