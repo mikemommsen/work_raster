@@ -29,6 +29,10 @@ class LinearScale:
         outval = outz + self.outrange[0]
         return outval
         
+    def invert(self):
+        """"""
+        return LinearScale(self.outrange, self.domain, self.limit)
+        
 class ScaleTwoDimensions(object):
     """"""
     def __init__(self, domainX=[0,1], domainY=[0,1], outrangeX=[0,1], outrangeY=[0,1], limit=False):
@@ -41,6 +45,10 @@ class ScaleTwoDimensions(object):
         x = self.scaleX.get(invalX)
         y = self.scaleY.get(invalY)
         return (x, y)
+        
+    def invert(self):
+        """"""
+        return ScaleTwoDimensions(self.domainY, self.domainX, self.outrangeY, self.outrangeX, self.limit)
         
 class Corners:
     """"""
