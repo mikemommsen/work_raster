@@ -57,7 +57,7 @@ class Corners:
         
 class MapDocument(ScaleTwoDimensions):
     """"""
-    def __init__(self, width=8, height=9, scale=6000, nwCorner=[0,0]):
+    def __init__(self, width=8, height=9, scale=6000, nwCorner=[0,0], spatialRef):
         self.width = width
         self.height = height
         self.scale = scale
@@ -68,15 +68,20 @@ class MapDocument(ScaleTwoDimensions):
         topedge = x[1]
         leftedge = x[0] + meterwidth
         bottomedge = x[1] - meterheight
-        self.corners = {'nw': nwCorner,'ne': [topedge,leftedge],'se': [bottomedge,leftedge],'sw': [bottomedge,rightedge]}
+        self.corners = OrderedDict([('nw', nwCorner), ('ne', [topedge,leftedge]),
+                                    ('se': [bottomedge,leftedge]), ('sw': [bottomedge,rightedge])])
+        self.centroid = (nwCorner [0] - meterwidth, nwCorner[1] - meterheight)
         super(self.__class__, self).__init__(width, height, [nwCorner[0],leftedge],[nwCorner[1], bottomedge])# look up the syntax for this shit - its pretty cool though
         
-    def makeCorners(self):
+    def createArcPolygon(self):
         """"""
-        self.
-        
-    def writeShapefile(self):
-        """"""
+        ar = arcpy.Array
+        pnt = arcpy.Point
+        for corner in self.corners.values():
+            pnt.X = corner[0]
+            pnt.Y = corner[1]
+            ar.append(pnt)
+        poly = arcpy.Poly(ar, self.spatialRef)
         
         
         
