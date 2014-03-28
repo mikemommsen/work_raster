@@ -57,13 +57,31 @@ class Corners:
         
 class MapDocument(ScaleTwoDimensions):
     """"""
-    def __init__(self, width=8, height=9, scale=6000, nwCorner=[0,0], spatialRef):
+    def __init__(self, width=8, height=9, scale=6000, corner=[0,0], cornertype='NW', spatialRef):
         self.width = width
         self.height = height
         self.scale = scale
         meterscale = scale / INCHESPERMETER
         self.meterwidth = meterwidth = width * meterscale
         self.meterheight = meterheight = height * meterscale
+        # this section allows corner changing - maybe seperate function that is called by __init__
+        if cornertype[0] ==  'N':
+            pass
+        elif cornertype[0] == 'S':
+            corner[0] -= meterwidth
+        elif cornertype[0] == 'C':
+            corner[0] -= (meterwidth / 2)
+        else:
+            print 'unrecognized cornertype'
+        if cornertype[1] ==  'W':
+            pass
+        elif cornertype[1] == 'E':
+            corner[1] -= meterheight
+        elif cornertype[1] == 'C':
+            corner[1] -= (meterheight / 2)
+        else:
+            print 'unrecognized cornertype'
+        # section ends here
         rightedge = x[0]
         topedge = x[1]
         leftedge = x[0] + meterwidth
