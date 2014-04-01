@@ -41,17 +41,34 @@ class Domain:
         self.low = low
         self.high = high
         self.limit = limit
+        self.extent = high - low
         
     def __str__(self):
+        """"""
         basetext =  'Domain object named {name} with low val: {low}, high val: {high}, and limit:{limit}'
         return basetext.format(self.__dict__)
         
 class ManyWayLinearScale:
     """"""
-    def __init__(self, **kwargs):
+    def __init__(self, domains):
         """"""
+        self.domains = [x.name for x in domains]
+        for domain in domains:
+            setattr(self, domain.name, domain)
         
+    def __str__(self):
+        """"""
+        return 'ManyWayLinearScale with domains {}'.format(', '.format(domains))
         
+    def convert(self, inval, inDomain, outDomain):
+        """"""
+        if inDomain.limit or outDomain.limit:
+            assert inDomain.low <= inval < inDomain.high, 'needs to be inside indomain'
+        indiff = float(inval - inDomain.low)
+        inz = indiff / indomain.extent
+        outz = inz * outDomain.extent
+        outval = outz + outDomain.low
+        return outval
         
         
 class ScaleTwoDimensions(object):
