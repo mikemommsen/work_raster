@@ -48,9 +48,6 @@ def main():
         clipper = r'J:\GIS_Data\Working-MikeM\production\bulk_mpls\crop_boxes.shp'
     if not os.path.exists(outdir):
         os.mkdir(outdir)
-    # i also want this to work where you feed it a list of photos and it works
-    # or maybe just have a function that finds the photos for you
-    # that sounds a lot more practical than writing out raster names
     for inraster in inrasters:
         if os.path.isdir(inraster):
             rasters = [x for x in os.listdir(inraster) if not os.path.isdir(x) and os.path.splitext(x)[1] in RASTERFORMATS]
