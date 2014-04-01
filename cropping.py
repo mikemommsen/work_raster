@@ -33,6 +33,27 @@ class LinearScale:
         """"""
         return LinearScale(self.outrange, self.domain, self.limit)
         
+class Domain:
+    """"""
+    def __init__(self, name, low, high, limit):
+        """"""
+        self.name = name
+        self.low = low
+        self.high = high
+        self.limit = limit
+        
+    def __str__(self):
+        basetext =  'Domain object named {name} with low val: {low}, high val: {high}, and limit:{limit}'
+        return basetext.format(self.__dict__)
+        
+class ManyWayLinearScale:
+    """"""
+    def __init__(self, **kwargs):
+        """"""
+        
+        
+        
+        
 class ScaleTwoDimensions(object):
     """"""
     def __init__(self, domainX=[0,1], domainY=[0,1], outrangeX=[0,1], outrangeY=[0,1], limit=False):
