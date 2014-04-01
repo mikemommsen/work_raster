@@ -7,26 +7,38 @@ from itertools import groupby
 # we can add more later, or maybe look for "w" in the extension
 WORLDNAMES = ['.jgw', '.jgwx', '.tfw', '.tfwx']
     
-def findWorldFiles(indir, inlist):
+def findWorldFiles(inlist):
     """takes a list of files and returns the ones that have a world file"""
+    # the function to group photos into groups based off of basename (not extension
     keyfunc = lambda x: x.split('.')[0]
     mylist = []
-    # lets check into if it has to be sorted or something like that
-    grouper = groupby(indir, inlist, keyfunc)
+    # sort the inlist just to make sure
+    # i think that this is needed for groupby to work
+    sortedinlist = sorted(inlist)
+    # create a groupby object to loop through
+    grouper = groupby(sortedinlist, keyfunc)
+    # loop through the different basenames
     for key, g in grouper:
+        # for each basename loop through the files that have that basename
         for x in g:
+            # find the extension for the file
             basename, extension = os.path.splitext(x)
+            # if one of the files is a worldfile
             if extension in WORLDNAMES:
+                # add all of the files to mylist
                 mylist += list(g)
+                # and leave the inner loop, going back to looping through basenames
                 break
     return mylist
 
 def walkDir(indir):
     """"""
+    # start a blank list
     mylist = []
+    # ive always found os.walk to be strange, but it works hee
     for root, dirs, files in os.walk(indir):
-        # create a group object that groups
-        basefiles = findWorldFiles(root, files)
+        #
+        basefiles = findWorldFiles(files)
         fullnames = [os.path.join(root, x) for x in basefiles]
         mylist += fullnames
     return mylist
@@ -65,10 +77,10 @@ def copyFromBaseNames(indir, outdir, baseNames):
 def main():
     # lets make this so we can run both one dir, or the entire
     """"""
-    indir = r'I:\Aerials\CA\County\LosAngeles' #sys.argv[1]
-    outdir = r'J:\GIS_Data\Working-MikeM\production\los_angeles' #sys.argv[2]
-    readmode = 'r' | '' #sys.argv[3]
-    writemode = 'r' | '' # sys.argv[4]
+    indir = r'I:\Aerials\MD\County\Harford' #sys.argv[1]
+    outdir = r'J:\GIS_Data\Working-MikeM\production\maryland\Harford\georeferenced_aerials' #sys.argv[2]
+    readmode = 'r'#'r' | '' #sys.argv[3]
+    writemode = ''#'r' | '' # sys.argv[4]
     if not os.path.exists(outdir):
         os.mkdir(outdir)
     allfiles = os.listdir(indir)
@@ -76,7 +88,7 @@ def main():
         worldfiles = walkDir(indir)
     else:
         allfiles = os.listdir(indir)
-        worldfiles = findWorldFiles(indir, allfiles)
+        worldfiles = findWorldFiles(allfiles)
     print worldfiles
     copyFileList(worldfiles, outdir)
     print True
