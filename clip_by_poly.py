@@ -34,35 +34,30 @@ def clip_by_polyLayer(clipper, inraster, outdir):
     finally:
         del r, cur
 
-if not os.path.exists(outdir):
-    os.mkdir(outdir)
-
-
-newlist = [r'H:\Mosaics\2008\MN_NAIP08\ortho_1-1_1m_j_mn053_2008_3.jp2']
-
-for i in newlist:
-    clip_by_polyLayer(clipper, i, outdir)
-
 def main():
     """"""
-    if len(sys.argv) == 4:
-        inraster = sys.argv[1] #r'C:\temp\topoCrops\2003.jpg'
-        outdir = sys.argv[2] #r'C:\temp\topoCrops\bulk'
-        clipper = sys.argv[3] #r'J:\GIS_Data\Working-MikeM\production\bulk_mpls\crop_boxes.shp'
+    # if there are at least 4 args (title included) then we can use them
+    if len(sys.argv) >= 4:
+        outdir = sys.argv[1] #r'C:\temp\topoCrops\bulk'
+        clipper = sys.argv[2] #r'J:\GIS_Data\Working-MikeM\production\bulk_mpls\crop_boxes.shp'
+        inrasters = sys.argv[3:] #r'C:\temp\topoCrops\2003.jpg'
     else:
-        print 'not the right amount of args, using script set presets'
+        print 'not enough args, using script set presets'
         inraster = r'C:\temp\topoCrops\2003.jpg'
         outdir = r'C:\temp\topoCrops\bulk'
         clipper = r'J:\GIS_Data\Working-MikeM\production\bulk_mpls\crop_boxes.shp'
+    if not os.path.exists(outdir):
+        os.mkdir(outdir)
     # i also want this to work where you feed it a list of photos and it works
     # or maybe just have a function that finds the photos for you
     # that sounds a lot more practical than writing out raster names
-    if os.path.isdir(inraster):
-        rasters = [x for x in os.listdir(inraster) if not os.path.isdir(x) and os.path.splitext(x)[1] in RASTERFORMATS]
-        for raster in rasters:
-            clip_by_polyLayer(clipper, raster, indir)
-    else:
-        clip_by_polyLayer(clipper, inraster, indir)
+    for inraster in inrasters:
+        if os.path.isdir(inraster):
+            rasters = [x for x in os.listdir(inraster) if not os.path.isdir(x) and os.path.splitext(x)[1] in RASTERFORMATS]
+            for raster in rasters:
+                clip_by_polyLayer(clipper, raster, indir)
+        else:
+            clip_by_polyLayer(clipper, inraster, indir)
 
 if __name__ == '__main__':
     pass
