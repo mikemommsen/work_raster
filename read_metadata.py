@@ -134,12 +134,20 @@ def readFeatureClass(featureClassPath, utmzone, geometryFieldName, photoNameFiel
         for row in cur:
             poly = row.getValue(geometryFieldName)
             photoName = row.getValue(photoNameFieldName)
-            outdict[photoName] = rowdict = {}
             unSortedCoordinates = [(pt.X, pt.Y) for pt in poly[0]]
             eastwest = sorted(unSortedCoordinates, key=lambda x: x[1])
             westerns, easterns = eastwest[:2], eastwest[2:]
-            rowdict[sw], rowdict[nw] = sorted(westerns, key=lambda x: x[0])
-            rowdict[se], rowdict[ne] = sorted(easterns, key=lambda x: x[0])
+            sw, nw = sorted(westerns, key=lambda x: x[0])
+            se, ne = sorted(easterns, key=lambda x: x[0])
+            outdict[photoName] = {
+                'SWlatUTM': sw[1],
+                'SWlonUTM': sw[0],
+                'NWlatUTM': nw[1],
+                'NWlonUTM': nw[0],
+                'NElatUTM': ne[1],
+                'NElonUTM': ne[0],
+                'SElatUTM': se[1],
+                'SElonUTM': se[0]}
         return outdict
     except Exception as e:
         print e
