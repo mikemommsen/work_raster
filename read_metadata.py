@@ -126,6 +126,21 @@ def readcoordinatestable(indict):
         mylist.append((lat,lon))
     return mylist
         
+def readFeatureClass(featureClassPath, utmzone, geometryFieldName, photoNameFieldName):
+    """"""
+    cur = arcpy.SearchCursor(featureClassPath, utmzome)
+    try:
+        for row in cur:
+            poly = row.getValue(geometryFieldName)
+            photoName = row.getValue(photoNameFieldName)
+            unSortedCoordinates = [(pt.X, pt.Y) for pt in poly[0]]
+            
+    finally:
+        if 'r' in locals():
+            del r
+        if 'cur' in locals():
+            del cur
+
 def createnewshapefile(basepath, filename):
     """takes a path and name and creates a new featureclass.
     although not explicityle required to be a shapefile that is the general goal here"""
