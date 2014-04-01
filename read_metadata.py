@@ -130,11 +130,20 @@ def readFeatureClass(featureClassPath, utmzone, geometryFieldName, photoNameFiel
     """"""
     cur = arcpy.SearchCursor(featureClassPath, utmzome)
     try:
+        outdict = {}
         for row in cur:
             poly = row.getValue(geometryFieldName)
             photoName = row.getValue(photoNameFieldName)
+            outdict[photoName] = rowdict = {}
             unSortedCoordinates = [(pt.X, pt.Y) for pt in poly[0]]
-            
+            eastwest = sorted(unSortedCoordinates, key=lambda x: x[1])
+            westerns, easterns = eastwest[:2], eastwest[2:]
+            rowdict[sw], rowdict[nw] = sorted(westerns, key=lambda x: x[0])
+            rowdict[se], rowdict[ne] = sorted(easterns, key=lambda x: x[0])
+        return outdict
+    except Exception as e:
+        print e
+        sys.exit(1)
     finally:
         if 'r' in locals():
             del r
