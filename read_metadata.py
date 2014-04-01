@@ -128,13 +128,13 @@ def readcoordinatestable(indict):
         
 def readFeatureClass(featureClassPath, utmzone, geometryFieldName, photoNameFieldName):
     """"""
-    cur = arcpy.SearchCursor(featureClassPath, utmzome)
+    cur = arcpy.SearchCursor(featureClassPath, utmzone)
     try:
         outdict = {}
         for row in cur:
             poly = row.getValue(geometryFieldName)
             photoName = row.getValue(photoNameFieldName)
-            unSortedCoordinates = [(pt.X, pt.Y) for pt in poly[0]]
+            unSortedCoordinates = {(pt.X, pt.Y) for pt in poly.getPart(0)}
             eastwest = sorted(unSortedCoordinates, key=lambda x: x[1])
             easterns, westerns = eastwest[:2], eastwest[2:]
             sw, nw = sorted(westerns, key=lambda x: x[0])
