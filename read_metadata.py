@@ -272,6 +272,10 @@ def createAuxFile(coordinates, utmname, inraster, template):
     with open(outfile, 'w') as f:
         f.write(output)
         
+def createLinkTable(coordinates, inraster, template):
+    """"""
+    pass
+        
 def findurl(inraster):
     """takes a path to a raster and returns the url for the metadata"""
     # this could be a good function to read in the web data and tell 
@@ -298,14 +302,7 @@ def createpyramids(inraster):
     arcpy.BuildPyramids_management(inraster)
     return True
     
-def main():
-    """"""
-    outpath = sys.argv[1]
-    inraster = sys.argv[2]
-    templatefile = r'J:\GIS_Data\Working-MikeM\template.jpg.aux.xml' #sys.argv[3]
-    with open(templatefile) as f:
-        text = f.read()
-        template = string.Template(text)
+def run(outpath, inraster, template):
     url = findurl(inraster)
     alldata = readmetadatatable(url)
     # this could be dumped into the geojson properties or attributes or whatever they call it in geojson
@@ -316,7 +313,30 @@ def main():
     utmcoords, utmname = writeshapefile(coordinates, outpath, field_data)
     createAuxFile(utmcoords, utmname, inraster, template)
     createpyramids(inraster)
-    print True
+    return True
+    
+def main():
+    """"""
+    if len(sys.argv) != 3:
+        outpath = r'J:\GIS_Data\Working-MikeM\production\tester5.shp'
+        inraster = r'C:\Workspace\georeferencing'
+    else:
+        outpath = sys.argv[1]
+        inraster = sys.argv[2]
+    templatefile = r'J:\GIS_Data\Working-MikeM\template.jpg.aux.xml' #sys.argv[3]
+    with open(templatefile) as f:
+        text = f.read()
+        template = string.Template(text)
+    if os.path.isdir(inraster):
+        allfiles = os.listdir(inraster)
+        rasters = [x for x in allfiles if x[-4:] == '.jpg']
+        for raster in rasters:
+            fullrasterpath = os.path.join(inraster, raster)
+            run(outpath, fullrasterpath, template)
+            print raster
+    else:
+        run(outpath, inraster, template)
+
 
 if __name__ == '__main__':
-    main()
+        main()
