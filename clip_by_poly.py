@@ -1,9 +1,11 @@
+#mike mommsen april 2014
+
+#imports
 import arcpy
 import os
+import sys
 
-inraster = r'C:\temp\topoCrops\2003.jpg'
-outdir = r'C:\temp\topoCrops\bulk'
-clipper = r'J:\GIS_Data\Working-MikeM\production\bulk_mpls\crop_boxes.shp'
+RASTERFORMATS = ['.tif', '.jp2', '.jpg', '.sid']#add more as they are needed - we could merge this list with the list from find world files.py
 
 def clip_by_polyLayer(clipper, inraster, outdir):
     """takes a poly layer, loops through it and creates a clip of
@@ -43,7 +45,17 @@ for i in newlist:
 
 def main():
     """"""
-    pass
+    if len(sys.argv) == 4:
+        inraster = sys.argv[1] #r'C:\temp\topoCrops\2003.jpg'
+        outdir = sys.argv[1] #r'C:\temp\topoCrops\bulk'
+        clipper = sys.argv[1] #r'J:\GIS_Data\Working-MikeM\production\bulk_mpls\crop_boxes.shp'
+    else:
+        print 'not the right amount of args, using script set presets'
+        inraster = r'C:\temp\topoCrops\2003.jpg'
+        outdir = r'C:\temp\topoCrops\bulk'
+        clipper = r'J:\GIS_Data\Working-MikeM\production\bulk_mpls\crop_boxes.shp'
+    if os.path.isdir(inraster):
+        rasters = [x for x in os.listdir(inraster) if not os.path.isdir(x) and os.path.splitext(x)[1] in RASTERFORMATS]
 
 if __name__ == '__main__':
     pass
