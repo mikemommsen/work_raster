@@ -37,9 +37,11 @@ def walkDir(indir):
     mylist = []
     # ive always found os.walk to be strange, but it works hee
     for root, dirs, files in os.walk(indir):
-        #
+        # send the files to findWorldFiles, and get back all of the ones that have the same basename as one that has a worldfile
         basefiles = findWorldFiles(files)
+        # for each file add the path to the front of it
         fullnames = [os.path.join(root, x) for x in basefiles]
+        # add all of those files into a list
         mylist += fullnames
     return mylist
 
@@ -53,16 +55,27 @@ def copyFileList(inlist, outdir):
     
 def copyFileListHierarchy(indir, outdir):
     """"""
+    # when i wrote this it seemed easier to have this do the reading and the writing
+    # rather than call the walkDir function
+    # it does seem like repetitive code though, so maybe we need to make it take a list of files that is created by walkDir
+    # start a blank list
     mylist = []
+    # os.walk through the indir
     for root, dirs, files in os.walk(indir):
-        basefiles = findWorldFiles(root, files)
+        # call findWorldFiles with the files for each root
+        basefiles = findWorldFiles(files)
         if basefiles:
-            outfilename = root[len(indir):]
-            outpath = os.path.join(outdir, outfilename)
-            os.mkdir(outpath)
+            # find the part of the root that extends past indir
+            outpathex = root[len(indir):]
+            # and join that part with the outdir to make the outfolder
+            outpath = os.path.join(outdir, outpathex)
+            # if there is no outpath than we make it
+            if not os.path.exists(outpath):
+                os.mkdir(outpath)
+            # and we copy all the basefiles to the outpath
             copyFileList(basefiles, outpath)
+            
             print True
-# because we are doing the walk we should allow for a copy flat and a copy hierarchy option
 
 def copyFromBaseNames(indir, outdir, baseNames):
     """takes a list of basenames and copys every extension of those files from indir to outdir"""
