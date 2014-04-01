@@ -140,14 +140,8 @@ def readFeatureClass(featureClassPath, utmzone, geometryFieldName, photoNameFiel
             sw, nw = sorted(westerns, key=lambda x: x[0])
             se, ne = sorted(easterns, key=lambda x: x[0])
             outdict[photoName] = {
-                'SWlatUTM': sw[1],
-                'SWlonUTM': sw[0],
-                'NWlatUTM': nw[1],
-                'NWlonUTM': nw[0],
-                'NElatUTM': ne[1],
-                'NElonUTM': ne[0],
-                'SElatUTM': se[1],
-                'SElonUTM': se[0]}
+                'SWlatUTM': sw[1], 'SWlonUTM': sw[0], 'NWlatUTM': nw[1], 'NWlonUTM': nw[0], 
+                'NElatUTM': ne[1], 'NElonUTM': ne[0], 'SElatUTM': se[1], 'SElonUTM': se[0]}
         return outdict
     except Exception as e:
         print e
