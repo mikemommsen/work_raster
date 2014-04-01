@@ -136,7 +136,7 @@ def readFeatureClass(featureClassPath, utmzone, geometryFieldName, photoNameFiel
             photoName = row.getValue(photoNameFieldName)
             unSortedCoordinates = [(pt.X, pt.Y) for pt in poly[0]]
             eastwest = sorted(unSortedCoordinates, key=lambda x: x[1])
-            westerns, easterns = eastwest[:2], eastwest[2:]
+            easterns, westerns = eastwest[:2], eastwest[2:]
             sw, nw = sorted(westerns, key=lambda x: x[0])
             se, ne = sorted(easterns, key=lambda x: x[0])
             outdict[photoName] = {
