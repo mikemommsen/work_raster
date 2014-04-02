@@ -7,6 +7,24 @@ import sys
 
 RASTERFORMATS = ['.tif', '.jp2', '.jpg', '.sid']#add more as they are needed - we could merge this list with the list from find world files.py
 
+def clipByExtent(inextent, inraster, rasterExtent):
+    """"""
+    if rasterExtent.contains(rawextent):
+        # join together the extent to throw into the clipper
+        extent = ' '.join(map(str,(rawextent.XMin, rawextent.YMin,rawextent.XMax, rawextent.YMax)))
+        # this line below makes a different folder for each order or area
+        # the structure of the output has not been static, so there will be changes here in the future
+        outpath = os.path.join(outdir, order)
+        # take the tail of the raster, remove the extension and add .jpg to make the output name
+        outname = os.path.splitext(os.path.split(inraster)[1])[0] + '.jpg')
+        # if the ouput subfolder does not exist we make it
+        if not os.path.exists(outpath):
+            os.mkdir(outpath)
+        # and now we finally do the clip
+        arcpy.Clip_management(inraster,extent,os.path.join(outpath, outname), "#", "#", "NONE")
+    else:
+        print inraster 'does not contain', inextent
+
 def clip_by_polyLayer(clipper, inraster, outdir):
     """takes a poly layer, loops through it and creates a clip of
     the image for each polygon in the clip layer named by the name field"""
