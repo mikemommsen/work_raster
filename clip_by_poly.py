@@ -7,7 +7,7 @@ import sys
 
 RASTERFORMATS = ['.tif', '.jp2', '.jpg', '.sid']#add more as they are needed - we could merge this list with the list from find world files.py
 
-def clipByExtent(inextent, inraster, rasterExtent):
+def clipByExtent(rawextent, inraster, rasterExtent):
     """"""
     if rasterExtent.contains(rawextent):
         # join together the extent to throw into the clipper
@@ -23,7 +23,7 @@ def clipByExtent(inextent, inraster, rasterExtent):
         # and now we finally do the clip
         arcpy.Clip_management(inraster,extent,os.path.join(outpath, outname), "#", "#", "NONE")
     else:
-        print inraster 'does not contain', inextent
+        print inraster 'does not contain', extent
 
 def clip_by_polyLayer(clipper, inraster, outdir):
     """takes a poly layer, loops through it and creates a clip of
