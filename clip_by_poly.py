@@ -12,6 +12,8 @@ def clipByExtent(rawextent, inraster, rasterExtent=None):
     # think about changing rawextent to a better name
     if not rasterExtent:
         rasterExtent = arcpy.Desctibe(inraster).extent
+    # this line below seems to cause some problems with .sid files
+    # it asks if the raster contains the clipping box
     if rasterExtent.contains(rawextent):
         # join together the extent to throw into the clipper
         extent = ' '.join(map(str,(rawextent.XMin, rawextent.YMin,rawextent.XMax, rawextent.YMax)))
@@ -48,27 +50,8 @@ def clip_by_polyLayer(clipper, inraster, outdir):
             geog = r.getValue('SHAPE')
             # grab the extent of the geography
             rawextent = geog.extent
-            # this line below seems to cause some problems with .sid files
-            # it asks if the raster contains the clipping box
-            if rasterExtent.contains(rawextent):
-                # join together the extent to throw into the clipper
-                extent = ' '.join(map(str,(rawextent.XMin, rawextent.YMin,rawextent.XMax, rawextent.YMax)))
-                # this line below makes a different folder for each order or area
-                # the structure of the output has not been static, so there will be changes here in the future
-                outpath = os.path.join(outdir, order)
-                # take the tail of the raster, remove the extension and add .jpg to make the output name
-                outname = os.path.splitext(os.path.split(inraster)[1])[0] + '.jpg')
-                # if the ouput subfolder does not exist we make it
-                if not os.path.exists(outpath):
-                    os.mkdir(outpath)
-                # and now we finally do the clip
-                arcpy.Clip_management(inraster,extent,os.path.join(outpath, outname), "#", "#", "NONE")
-            # if there is no overlap print some information to the user so they can see what did not clip
-            # and try to troubleshoot on their own
-            else:
-                print inraster, rasterExtent
-                print order, rawextent
-    # could put exception handling here
+            # call the clipByExtent function
+            clipResponse = clipByExtent(rawextent, inraster, rasterExtent=None):
     except Exception as e:
         print e
     # and finally always delete these to prevent any locking issues
