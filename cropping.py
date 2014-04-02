@@ -88,14 +88,15 @@ class ScaleTwoDimensions(object):
         """"""
         return ScaleTwoDimensions(self.domainY, self.domainX, self.outrangeY, self.outrangeX, self.limit)
         
-class Corners:
-    """"""
-    def __init__(self, 
         
         
 class MapDocument(ScaleTwoDimensions):
     """"""
     def __init__(self, width=8, height=9, scale=6000, corner=[0,0], cornertype='NW', spatialRef):
+        """takes dimensions of a map document in inches, the scale, corner in localUtm, and spatialRef for that corner.
+        this function creates a mike mommsen MapDocument, which should allow for some nice cropping options.
+        the cornerType  starts with N|S|C for if the corner is north, south, or central.
+        the second char of cornertype is E|W|C for east, west, central."""
         self.width = width
         self.height = height
         self.scale = scale
@@ -126,6 +127,7 @@ class MapDocument(ScaleTwoDimensions):
         bottomedge = x[1] - meterheight
         self.corners = OrderedDict([('nw', nwCorner), ('ne', [topedge,leftedge]),
                                     ('se': [bottomedge,leftedge]), ('sw': [bottomedge,rightedge])])
+        self.extent = {}
         self.centroid = (nwCorner [0] - meterwidth, nwCorner[1] - meterheight)
         super(self.__class__, self).__init__(width, height, [nwCorner[0],leftedge],[nwCorner[1], bottomedge])# look up the syntax for this shit - its pretty cool though
         
