@@ -90,15 +90,26 @@ def copyFromBaseNames(indir, outdir, baseNames):
 def main():
     # lets make this so we can run both one dir, or the entire
     """"""
-    indir = r'I:\Aerials\MD\County\Harford' #sys.argv[1]
-    outdir = r'J:\GIS_Data\Working-MikeM\production\maryland\Harford\georeferenced_aerials' #sys.argv[2]
-    readmode = 'r'#'r' | '' #sys.argv[3]
-    writemode = ''#'r' | '' # sys.argv[4]
+    if len(sys.argv) != 5:
+        print 'not the right amount of args using local presets'
+        indir = r'I:\Aerials\MD\County\Harford' 
+        outdir = r'J:\GIS_Data\Working-MikeM\production\maryland\Harford\georeferenced_aerials'
+        readmode = 'r'#'r' | '' 
+        writemode = ''#'r' | '' 
+    else:
+        indir = sys.argv[1]
+        outdir = sys.argv[2]
+        readmode = sys.argv[3]
+        writemode = sys.argv[4]
+        
     if not os.path.exists(outdir):
         os.mkdir(outdir)
     allfiles = os.listdir(indir)
     if readmode == 'r':
-        worldfiles = walkDir(indir)
+        if writemode == 'r':
+            copyFileListHierarchy(indir, outdir)
+        else:
+            worldfiles = walkDir(indir)
     else:
         allfiles = os.listdir(indir)
         worldfiles = findWorldFiles(allfiles)
