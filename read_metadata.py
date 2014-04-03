@@ -306,15 +306,18 @@ def run(outpath, inraster, template):
     url = findurl(inraster)
     alldata = readmetadatatable(url)
     # this could be dumped into the geojson properties or attributes or whatever they call it in geojson
-    field_data = filterdata(alldata, FIELDS)
-    coordinates = readcoordinatestable(alldata)
-    outbasepath, outfile = os.path.split(outpath)
-    outfilename, outfileextension = os.path.splitext(outfile)
-    utmcoords, utmname = writeshapefile(coordinates, outpath, field_data)
-    createAuxFile(utmcoords, utmname, inraster, template)
-    createpyramids(inraster)
-    return True
-    
+    if alldata:
+        field_data = filterdata(alldata, FIELDS)
+        coordinates = readcoordinatestable(alldata)
+        outbasepath, outfile = os.path.split(outpath)
+        outfilename, outfileextension = os.path.splitext(outfile)
+        utmcoords, utmname = writeshapefile(coordinates, outpath, field_data)
+        createAuxFile(utmcoords, utmname, inraster, template)
+        createpyramids(inraster)
+        return True
+    else:
+        return False
+        
 def main():
     """"""
     if len(sys.argv) != 3:
@@ -332,8 +335,11 @@ def main():
         rasters = [x for x in allfiles if x[-4:] == '.jpg']
         for raster in rasters:
             fullrasterpath = os.path.join(inraster, raster)
-            run(outpath, fullrasterpath, template)
-            print raster
+            result = run(outpath, fullrasterpath, template)
+            if not result:
+                print 'no metadata for ', raster
+            else:
+                print 'success for', raster
     else:
         run(outpath, inraster, template)
 
