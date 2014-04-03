@@ -108,6 +108,7 @@ def main():
     if readmode == 'r':
         if writemode == 'r':
             copyFileListHierarchy(indir, outdir)
+            sys.exit(1)
         else:
             worldfiles = walkDir(indir)
     else:
