@@ -272,9 +272,17 @@ def createAuxFile(coordinates, utmname, inraster, template):
     with open(outfile, 'w') as f:
         f.write(output)
         
-def createLinkTable(coordinates, inraster, template):
+def createLinkTable(coordinates, inraster, template, outfile):
     """"""
-    pass
+    outTemplate = '''0 0 {NWLonUTM} {NWLatUTM}
+                      {width} 0 {NELonUTM} {NELatUTM}
+                      {width} -{height} {SELonUTM} {SELatUTM}
+                      0 -{height} {SWLonUTM} {SWLatUTM}'''
+    width, height = getsize(inraster)
+    outText = outTemplate.format(width=width, height=height, **coordinates)
+    with open(outfile, 'w') as f:
+        f.write(outText)
+    return True
         
 def findurl(inraster):
     """takes a path to a raster and returns the url for the metadata"""
