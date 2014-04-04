@@ -21,7 +21,7 @@ def clipByExtent(rawextent, inraster, rasterExtent=None):
         # the structure of the output has not been static, so there will be changes here in the future
         outpath = os.path.join(outdir, order)
         # take the tail of the raster, remove the extension and add .jpg to make the output name
-        outname = os.path.splitext(os.path.split(inraster)[1])[0] + '.jpg')
+        outname = os.path.splitext(os.path.split(inraster)[1])[0] + '.jpg'
         # if the ouput subfolder does not exist we make it
         if not os.path.exists(outpath):
             os.mkdir(outpath)
@@ -29,7 +29,7 @@ def clipByExtent(rawextent, inraster, rasterExtent=None):
         outfile = arcpy.Clip_management(inraster,extent,os.path.join(outpath, outname), "#", "#", "NONE")
         return outfile
     else:
-        print inraster 'does not contain', extent
+        print inraster, 'does not contain', extent
         return None
 
 def clip_by_polyLayer(clipper, inraster, outdir):
