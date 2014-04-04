@@ -7,11 +7,11 @@ import sys
 
 RASTERFORMATS = ['.tif', '.jp2', '.jpg', '.sid']#add more as they are needed - we could merge this list with the list from find world files.py
 
-def clipByExtent(rawextent, inraster, rasterExtent=None):
+def clipByExtent(rawextent, inraster, outdir,rasterExtent=None):
     """takes a rawextent object (arcpy) and returns the portion of the raster that is in the exent"""
     # think about changing rawextent to a better name
     if not rasterExtent:
-        rasterExtent = arcpy.Desctibe(inraster).extent
+        rasterExtent = arcpy.Describe(inraster).extent
     # this line below seems to cause some problems with .sid files
     # it asks if the raster contains the clipping box
     if rasterExtent.contains(rawextent):
@@ -19,7 +19,7 @@ def clipByExtent(rawextent, inraster, rasterExtent=None):
         extent = ' '.join(map(str,(rawextent.XMin, rawextent.YMin,rawextent.XMax, rawextent.YMax)))
         # this line below makes a different folder for each order or area
         # the structure of the output has not been static, so there will be changes here in the future
-        outpath = os.path.join(outdir, order)
+        outpath = outdir
         # take the tail of the raster, remove the extension and add .jpg to make the output name
         outname = os.path.splitext(os.path.split(inraster)[1])[0] + '.jpg'
         # if the ouput subfolder does not exist we make it
@@ -29,7 +29,7 @@ def clipByExtent(rawextent, inraster, rasterExtent=None):
         outfile = arcpy.Clip_management(inraster,extent,os.path.join(outpath, outname), "#", "#", "NONE")
         return outfile
     else:
-        print inraster, 'does not contain', extent
+        print inraster, 'does not contain'
         return None
 
 def clip_by_polyLayer(clipper, inraster, outdir):
