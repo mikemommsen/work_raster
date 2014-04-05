@@ -38,9 +38,20 @@ class WorldFile(Object):
         y = self.yorigin + self.ypixelsize * row + self.xrotation * pixel
         return x, y
         
-    
-
+    def getPixel(x, y):
+        """"""
+        # need to figure out how to work the rotation term in, i should be better at math huh?
+        # if i really need help i can plug it into a solver (sympy)
+        # i also dont see this being the most needed thing though
+        xoffset = x - self.xorigin
+        yoffset = y - self.yorigin
+        # should the offsets be subtracted? for the rotations?
+        pixel = xoffset / self.xpixelsize + yoffset / self.yrotation
+        row = xoffset / self.xpixelsize + yoffset / self.yrotation
+        return pixel, row
+        
 def main():
+    """"""
     pass
     
 if __name__ == '__main__':
