@@ -57,6 +57,7 @@ class WorldFile(Object):
                   'secorner': self.getCoordinate(self.height, self.width),
                   'swcorner': self.getCoordinate(self.height, 0)}
         return mydict
+        
 def main():
     """"""
     pass
