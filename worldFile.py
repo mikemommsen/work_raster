@@ -31,7 +31,14 @@ class WorldFile(Object):
         fields = ['xpixelsize', 'xrotation', 'yrotation', 'ypixelsize', 'xorigin', 'yorigin']
         for field, row in zip(fields, rows):
             setattr(self, field, row)
+            
+    def getCoordinate(pixel, row):
+        """"""
+        x = self.xorigin + self.xpixelsize * pixel + self.yrotation * row
+        y = self.yorigin + self.ypixelsize * row + self.xrotation * pixel
+        return x, y
         
+    
 
 def main():
     pass
