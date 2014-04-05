@@ -58,6 +58,16 @@ class WorldFile(Object):
                   'swcorner': self.getCoordinate(self.height, 0)}
         return mydict
         
+    @classmethod
+    def createWorldFromCorners(cls, corners, raster):
+        """"""
+        from math import hypot
+        nwcorner
+        hypot for pixelsize
+        with open(raster.split('.')[0] + 'jgw') as f:
+            f.write(self.worldText)
+        return cls(raster)
+        
 def main():
     """"""
     pass
