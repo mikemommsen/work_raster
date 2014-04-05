@@ -32,13 +32,13 @@ class WorldFile(Object):
         for field, row in zip(fields, rows):
             setattr(self, field, row)
             
-    def getCoordinate(pixel, row):
+    def getCoordinate(self, pixel, row):
         """"""
         x = self.xorigin + self.xpixelsize * pixel + self.yrotation * row
         y = self.yorigin + self.ypixelsize * row + self.xrotation * pixel
         return x, y
         
-    def getPixel(x, y):
+    def getPixel(self, x, y):
         """"""
         # need to figure out how to work the rotation term in, i should be better at math huh?
         # if i really need help i can plug it into a solver (sympy)
@@ -49,7 +49,14 @@ class WorldFile(Object):
         pixel = xoffset / self.xpixelsize + yoffset / self.yrotation
         row = xoffset / self.xpixelsize + yoffset / self.yrotation
         return pixel, row
-        
+    
+    def getCorners(self):
+        """"""
+        mydict = {'nwcorner': self.xorigin, self.yorigin,
+                  'necorner': self.getCoordinate(0, self.width),
+                  'secorner': self.getCoordinate(self.height, self.width),
+                  'swcorner': self.getCoordinate(self.height, 0)}
+        return mydict
 def main():
     """"""
     pass
