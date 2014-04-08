@@ -62,6 +62,26 @@ class WorldFile(Object):
     def createWorldFromCorners(cls, corners, raster):
         """"""
         from math import hypot
+        fields = ['xpixelsize', 'xrotation', 'yrotation', 'ypixelsize', 'xorigin', 'yorigin']
+        average = lambda indict, inkey1, inkey2: (x['utmLat' + inkey1] + x['utmLat' + inkey2]) / 2,
+                                           (x['utmLon' + inkey1] + x['utmLon' + inkey2]) / 2
+        distance = lambda x,y: hypot(x[0] - y[0], x[1] - y[1])
+        skew = lambda x, y: (x[1] - y]1]) / (x[0] - y[0])
+        
+        leftmean = average(corners, 'NW', 'SW')
+        rightmean = average(corners, 'NE', 'SE') 
+        topmean = average(corners, 'NW', 'NE')
+        bottommean = average(corners, 'SW', 'SE') 
+        width = distance(leftmean, rightmean)
+        height = distance(topmean, bottomean)
+        pixelwidth, pixelheight = read_metadata.getSize(raster)
+        fields = [pixelwidth]
+        fields += [skew(bottommean, topmean)]
+        fields += [skew(leftmean, rightmean)]
+        fields += [pixelheight]
+        fields += []
+        fields += []
+        rows = []
         nwcorner
         hypot for pixelsize
         with open(raster.split('.')[0] + 'jgw') as f:
