@@ -79,7 +79,7 @@ class WorldFile(Object):
         fields += [skew(bottommean, topmean)]
         fields += [skew(leftmean, rightmean)]
         fields += [pixelheight]
-        fields += []
+        fields += [ h + height / 2 + skew(skew(leftmean, rightmean)) * (width / 2)]
         fields += []
         rows = []
         nwcorner
