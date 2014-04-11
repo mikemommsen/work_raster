@@ -68,7 +68,99 @@ FIELDS = OrderedDict({
     'Focal Length':'focallen', 
     'Stereo Overlap':'overlap'
     })
-           
+
+def fileNametoUSGSName(imagename):
+    """takes a dash seperated image and returns the usgs name for that image (nhap designed but may be applicable to other areas"""
+    project, roll, frame = imagename.split('-')
+    template = 'N{method}1{project}{roll:0>4}{frame:0>3}'
+    project = 'N' + project
+    roll = int(roll)
+    try:
+        frame = int(frame)
+    except:
+        
+        frame = re.search('[0-9]+', frame)
+        if frame:
+            frame = int(frame.group(0))
+        else:
+            return None
+    if roll % 2 == 0:
+        method = 'B'
+    else:
+        method = 'C'
+    outtext = template.format(method=method, project=project, roll=roll, frame=frame)
+    return outtext
+
+def getNHAPSFromList(inlist, outcsv):
+    """"""
+    urlTemplate = 'http://earthexplorer.usgs.gov/metadata/{0}/{1}'
+    if os.path.exists(outcsv):
+        f = open(outcsv, 'ab')
+        writer = csv.writer(f)
+    else:
+        f = open(outcsv, 'wb')
+        writer = csv.writer(f)
+        writer.writerow(['localNmae'] + NHAP_FIELDS)
+    try:
+        for localName in inlist:
+            image = fileNametoUSGSName(localName)
+            if image:
+                url = urlTemplate.format('4663', image)
+                print url
+                datadict = readmetadatatable(url)
+                if datadict:# and len(datadict) >= NHAP_FIELDS:
+                    outdata = [localName] + [datadict.get(field, 'NULL') for field in NHAP_FIELDS]
+                    writer.writerow(outdata)
+                else:
+                    writer.writerow([localName, 'not on earthexplorer'])
+            else:
+                writer.writerow([localName, 'not valid name'])
+                
+        f.close()
+        print 'success'
+    except Exception as e:
+        print e
+        print 'last frame'
+        sys.exit(1)
+    finally:
+        f.close()
+
+def getNHAPs(rollstart, rollend, framestart, frameend, project, outcsv):
+    """takes a roll and frame range and dumps metadata for existing nhaps into outcsv"""
+    if os.path.exists(outcsv):
+        f = open(outcsv, 'ab')
+        writer = csv.writer(f)
+    else:
+        f = open(outcsv, 'wb')
+        writer = csv.writer(f)
+        writer.writerow(NHAP_FIELDS)
+    rolls = range(rollstart, rollend)
+    frames = range(framestart, frameend)
+    # method = 'B' | 'C' roll = padded to 4, frame padded to 3, project NHAP82
+    template = 'N{method}1{project}{roll:0>4}{frame:0>3}'
+    urlTemplate = 'http://earthexplorer.usgs.gov/fgdc/{0}/{1}'
+    for roll in rolls:
+        if roll % 2 == 0:
+            method = 'B'
+        else:
+            method = 'C'
+        for frame in frames:
+            try:
+                t1 = time.time()
+                image = template.format(method=method, project=project, roll=roll, frame=frame)
+                url = urlTemplate.format('4663', image)
+
+                datadict = readmetadatatable(url)
+                print time.time() - t1
+                if datadict:# and len(datadict) >= NHAP_FIELDS:
+                    outdata = [datadict.get(field, 'NULL') for field in NHAP_FIELDS]
+                    writer.writerow(outdata)
+            except Exception as e:
+                f.write(','.join('url', 'error'))
+                f.close()
+                f = open(outcsv, 'ab')
+    f.close()
+          
 def readmetadatafgdc(url):
     """reads the fgdc metadata - not sure if this is going to be used very much
     also consider the fact that other people probably already have parsers that actually work for fgdc
