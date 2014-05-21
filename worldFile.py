@@ -13,11 +13,22 @@ class WorldFile(Object):
         self.basefilename, self.extension = os.path.splitext(self.filename)
         # think about maybe storing full paths (os.path.join(self.directory, x))
         self.supportFiles = [x for x in os.listdir(self.directory) if x.split('.')[0] == self.basefilename]
-        worldFiles = [x for x in self.supportFiles if x in WORLD_FILES]
-        if len(worldFiles) == 1:
-            self.worldFile = worldFiles[0]
+        if not self.supportFiles:
+            print 'we dont have any support files, this is a problem'
         else:
-            self.worldFile =  [x for x in in worldFiles if 'x' in x][0]
+            worldFiles = [x for x in self.supportFiles if x in WORLD_FILES]
+            # if there is only one use it
+            if len(worldFiles) == 1:
+                self.worldFile = worldFiles[0]
+            # if there are more than one
+            elif len(worldFiles) > 1:
+                xfile =  [x for x in in worldFiles if 'x' in x]
+                if xfile:
+                    self.worldFile = xfile
+                else:
+                    print 'no way of knowing which file is your world file'
+            else:
+                print 'could not find a world file'
             
     def __str__(self):
         """"""
@@ -31,6 +42,13 @@ class WorldFile(Object):
         fields = ['xpixelsize', 'xrotation', 'yrotation', 'ypixelsize', 'xorigin', 'yorigin']
         for field, row in zip(fields, rows):
             setattr(self, field, row)
+            
+    def writeWorldFile(self, outfile):
+        """"""
+        fields = ['xpixelsize', 'xrotation', 'yrotation', 'ypixelsize', 'xorigin', 'yorigin']
+        with open(outfile, 'w') as f:
+            for field in fields:
+                f.write(getattr(self, field))
             
     def getCoordinate(self, pixel, row):
         """"""
@@ -67,23 +85,18 @@ class WorldFile(Object):
                                            (x['utmLon' + inkey1] + x['utmLon' + inkey2]) / 2
         distance = lambda x,y: hypot(x[0] - y[0], x[1] - y[1])
         skew = lambda x, y: (x[1] - y]1]) / (x[0] - y[0])
-        
         leftmean = average(corners, 'NW', 'SW')
         rightmean = average(corners, 'NE', 'SE') 
         topmean = average(corners, 'NW', 'NE')
         bottommean = average(corners, 'SW', 'SE') 
-        width = distance(leftmean, rightmean)
-        height = distance(topmean, bottomean)
-        pixelwidth, pixelheight = read_metadata.getSize(raster)
-        fields = [pixelwidth]
-        fields += [skew(bottommean, topmean)]
-        fields += [skew(leftmean, rightmean)]
-        fields += [pixelheight]
-        fields += [ h + height / 2 + skew(skew(leftmean, rightmean)) * (width / 2)]
-        fields += []
-        rows = []
-        nwcorner
-        hypot for pixelsize
+        meterwidth = distance(leftmean, rightmean)
+        meterheight = distance(topmean, bottomean)
+        pixelcountwidth, pixelcountheight = read_metadata.getSize(raster)
+        pixelwidth = meterwidth / pixelcountwidth
+        pixelhieght =  meterheight / pixelcountheight
+        skew1 = skew(bottommean, topmean)
+        skew2 = skew(leftmean, rightmean)
+        
         with open(raster.split('.')[0] + 'jgw') as f:
             f.write(self.worldText)
         return cls(raster)
