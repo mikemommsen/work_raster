@@ -2,11 +2,40 @@ import sys
 import os
 
 # make sure that we import WORLD_FILES and read_metadata
+from read_metadata import WORLD_FILES
+
+def findWorldFile(supportFiles):
+    """"""
+    worldFiles = [x for x in self.supportFiles if os.path.splitext(x)[1] in WORLD_FILES]
+    if worldFiles:
+        if len(worldFiles) == 1:
+            return(worldFiles[0])
+        xfiles = [x for x in in worldFiles if 'x' in os.path.splitext(x)[1]]
+        if xfiles and len(xfiles) = 1:
+            return xfiles[0]
 
 class WorldFile(Object):
     """"""
-    def __init__(self, raster=None):
+    @classmethod
+    def loadFromRasterPath(cls, raster):
+        cls.rasterpath = raster
+        cls.directory, cls.filename = os.path.split(raster)
+        cls.basefilename = os.path.splitext(cls.filename)
+        cls.width, cls.height = read_metadata.getSize(raster)
+        cls.supportFiles = [x for x in os.listdir(self.directory) if x.split('.')[0] == basefilename]
+        cls.findWorldFile(supportFiles)
+        return cls
+        
+    @classmethod
+    def parseWorldFile(cls, worldFile):
         """"""
+        with open(os.path.join(self.directory, self.worldFile)) as f:
+            self.worldText = f.read
+        rows = self.worldText.split('\n')
+        
+        return cls(*rows)
+        
+    def __init__(self, xpixelsize, xrotation, yrotation, ypixelsize, xorigin, yorigin, width=None, height=None, wkid=None):
         self.raster = raster
         self.width, self.height = read_metadata.getSize(raster)
         self.directory, self.filename = os.path.split(raster)
@@ -24,7 +53,7 @@ class WorldFile(Object):
             elif len(worldFiles) > 1:
                 xfile =  [x for x in in worldFiles if 'x' in x]
                 if xfile:
-                    self.worldFile = xfile
+                    self.worldFile = xfile[0]
                 else:
                     print 'no way of knowing which file is your world file'
             else:
@@ -33,15 +62,6 @@ class WorldFile(Object):
     def __str__(self):
         """"""
         return self.raster
-        
-    def parseWorldFile(self):
-        """"""
-        with open(os.path.join(self.directory, self.worldFile)) as f:
-            self.worldText = f.read
-        rows = self.worldText.split('\n')
-        fields = ['xpixelsize', 'xrotation', 'yrotation', 'ypixelsize', 'xorigin', 'yorigin']
-        for field, row in zip(fields, rows):
-            setattr(self, field, row)
             
     def writeWorldFile(self, outfile):
         """"""
