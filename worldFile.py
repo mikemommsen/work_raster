@@ -40,7 +40,7 @@ class WorldFile(object):
         rows = self.worldText.split('\n')
         fields = ['xpixelsize', 'xrotation', 'yrotation', 'ypixelsize', 'xorigin', 'yorigin']
         for f, r in zip(fields, rows[:6]):
-            setattr(self, f, r)
+            setattr(self, f, float(r))
         
     def __init__(self, raster, wkid=None):
         """"""
@@ -60,7 +60,8 @@ class WorldFile(object):
     def writeWorldFile(self, outfile):
         """"""
         # we could change this using the string function for worldFile
-        fields = ['xpixelsize', 'xrotation', 'yrotation', 'ypixelsize', 'xorigin', 'yorigin']
+        # make sure that we dont have the esri flipping things around problem
+        fields = ['xpixelsize', 'yrotation', 'xrotation', 'ypixelsize', 'xorigin', 'yorigin']
         with open(outfile, 'w') as f:
             for field in fields:
                 f.write(getattr(self, field))
