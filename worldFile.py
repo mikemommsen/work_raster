@@ -10,8 +10,8 @@ def findWorldFile(supportFiles):
     if worldFiles:
         if len(worldFiles) == 1:
             return(worldFiles[0])
-        xfiles = [x for x in in worldFiles if 'x' in os.path.splitext(x)[1]]
-        if xfiles and len(xfiles) = 1:
+        xfiles = [x for x in worldFiles if 'x' in os.path.splitext(x)[1]]
+        if xfiles and len(xfiles) == 1:
             return xfiles[0]
 
 class WorldFile(Object):
@@ -79,7 +79,7 @@ class WorldFile(Object):
     
     def getCorners(self):
         """"""
-        mydict = {'nwcorner': self.xorigin, self.yorigin,
+        mydict = {'nwcorner': (self.xorigin, self.yorigin),
                   'necorner': self.getCoordinate(0, self.width),
                   'secorner': self.getCoordinate(self.height, self.width),
                   'swcorner': self.getCoordinate(self.height, 0)}
@@ -90,10 +90,9 @@ class WorldFile(Object):
         """"""
         from math import hypot
         fields = ['xpixelsize', 'xrotation', 'yrotation', 'ypixelsize', 'xorigin', 'yorigin']
-        average = lambda indict, inkey1, inkey2: (x['utmLat' + inkey1] + x['utmLat' + inkey2]) / 2,
-                                           (x['utmLon' + inkey1] + x['utmLon' + inkey2]) / 2
+        average = lambda indict, inkey1, inkey2: (x['utmLat' + inkey1] + x['utmLat' + inkey2]) / 2, (x['utmLon' + inkey1] + x['utmLon' + inkey2]) / 2
         distance = lambda x,y: hypot(x[0] - y[0], x[1] - y[1])
-        skew = lambda x, y: (x[1] - y]1]) / (x[0] - y[0])
+        skew = lambda x, y: (x[1] - y[1]) / (x[0] - y[0])
         leftmean = average(corners, 'NW', 'SW')
         rightmean = average(corners, 'NE', 'SE') 
         topmean = average(corners, 'NW', 'NE')
