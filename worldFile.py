@@ -3,6 +3,7 @@ import os
 
 # make sure that we import WORLD_FILES and read_metadata
 WORLDFILES = ['.jgw', '.jgwx', '.tfw', '.tfwx']
+import read_metadata
 
 def findWorldFile(supportFiles):
     """"""
@@ -21,7 +22,7 @@ class WorldFile(object):
         cls.rasterpath = raster
         cls.directory, cls.filename = os.path.split(raster)
         cls.basefilename = os.path.splitext(cls.filename)
-        cls.width, cls.height = read_metadata.getSize(raster)
+        cls.width, cls.height = read_metadata.getsize(raster)
         cls.supportFiles = [x for x in os.listdir(self.directory) if x.split('.')[0] == basefilename]
         cls.findWorldFile(supportFiles)
         return cls
@@ -99,7 +100,7 @@ class WorldFile(object):
         bottommean = average(corners, 'SW', 'SE') 
         meterwidth = distance(leftmean, rightmean)
         meterheight = distance(topmean, bottomean)
-        pixelcountwidth, pixelcountheight = read_metadata.getSize(raster)
+        pixelcountwidth, pixelcountheight = read_metadata.getsize(raster)
         pixelwidth = meterwidth / pixelcountwidth
         pixelhieght =  meterheight / pixelcountheight
         skew1 = skew(bottommean, topmean)
