@@ -2,7 +2,7 @@ import sys
 import os
 
 # make sure that we import WORLD_FILES and read_metadata
-from read_metadata import WORLD_FILES
+WORLDFILES = ['.jgw', '.jgwx', '.tfw', '.tfwx']
 
 def findWorldFile(supportFiles):
     """"""
@@ -14,7 +14,7 @@ def findWorldFile(supportFiles):
         if xfiles and len(xfiles) == 1:
             return xfiles[0]
 
-class WorldFile(Object):
+class WorldFile(object):
     """"""
     @classmethod
     def loadFromRasterPath(cls, raster):
