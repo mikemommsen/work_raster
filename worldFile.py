@@ -17,8 +17,10 @@ def findWorldFile(supportFiles):
 
 class WorldFile(object):
     """"""
-
+    
+    # lets not use this - id rather make base class for scaling matrix and build this on top than have this be a class method
     @classmethod
+    
     def loadFromRasterPath(self, raster):
         """"""
         self.rasterpath = raster
@@ -42,6 +44,7 @@ class WorldFile(object):
         
     def __init__(self, raster, wkid=None):
         """"""
+        # we clearly need to convert to folats because we are trying to do some math here
         self.rasterpath = raster
         self.directory, self.filename = os.path.split(raster)
         self.basefilename, self.extension = os.path.splitext(self.filename)
