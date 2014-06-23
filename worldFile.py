@@ -36,35 +36,24 @@ class WorldFile(Object):
         return cls(*rows)
         
     def __init__(self, xpixelsize, xrotation, yrotation, ypixelsize, xorigin, yorigin, width=None, height=None, wkid=None):
-        self.raster = raster
-        self.width, self.height = read_metadata.getSize(raster)
-        self.directory, self.filename = os.path.split(raster)
-        self.basefilename, self.extension = os.path.splitext(self.filename)
-        # think about maybe storing full paths (os.path.join(self.directory, x))
-        self.supportFiles = [x for x in os.listdir(self.directory) if x.split('.')[0] == self.basefilename]
-        if not self.supportFiles:
-            print 'we dont have any support files, this is a problem'
-        else:
-            worldFiles = [x for x in self.supportFiles if x in WORLD_FILES]
-            # if there is only one use it
-            if len(worldFiles) == 1:
-                self.worldFile = worldFiles[0]
-            # if there are more than one
-            elif len(worldFiles) > 1:
-                xfile =  [x for x in in worldFiles if 'x' in x]
-                if xfile:
-                    self.worldFile = xfile[0]
-                else:
-                    print 'no way of knowing which file is your world file'
-            else:
-                print 'could not find a world file'
+        """"""
+        self.xpixelsize = xpixelsize
+        self.xrotation = xrotation
+        self.yrotation = yrotation
+        self.ypixelsize = ypixelsize
+        self.xorigin = xorigin
+        self.yorigin = yorigin
+        self.width = width
+        self.height = height
+        self.wkid = wkid
             
     def __str__(self):
         """"""
-        return self.raster
+        return '\n'.join(self.xpixelsize, self.xrotation, self.yrotation, self.ypixelsize, self.xorigin ,self.yorigin)
             
     def writeWorldFile(self, outfile):
         """"""
+        # we could change this using the string function for worldFile
         fields = ['xpixelsize', 'xrotation', 'yrotation', 'ypixelsize', 'xorigin', 'yorigin']
         with open(outfile, 'w') as f:
             for field in fields:
