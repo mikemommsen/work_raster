@@ -2,12 +2,12 @@ import sys
 import os
 
 # make sure that we import WORLD_FILES and read_metadata
-WORLDFILES = ['.jgw', '.jgwx', '.tfw', '.tfwx']
+WORLD_FILES = ['.jgw', '.jgwx', '.tfw', '.tfwx']
 import read_metadata
 
 def findWorldFile(supportFiles):
     """"""
-    worldFiles = [x for x in self.supportFiles if os.path.splitext(x)[1] in WORLD_FILES]
+    worldFiles = [x for x in supportFiles if os.path.splitext(x)[1] in WORLD_FILES]
     if worldFiles:
         if len(worldFiles) == 1:
             return(worldFiles[0])
@@ -17,40 +17,42 @@ def findWorldFile(supportFiles):
 
 class WorldFile(object):
     """"""
+
     @classmethod
-    def loadFromRasterPath(cls, raster):
-        cls.rasterpath = raster
-        cls.directory, cls.filename = os.path.split(raster)
-        cls.basefilename = os.path.splitext(cls.filename)
-        cls.width, cls.height = read_metadata.getsize(raster)
-        cls.supportFiles = [x for x in os.listdir(self.directory) if x.split('.')[0] == basefilename]
-        cls.findWorldFile(supportFiles)
-        return cls
-        
-    @classmethod
-    def parseWorldFile(cls, worldFile):
+    def loadFromRasterPath(self, raster):
         """"""
-        with open(os.path.join(self.directory, self.worldFile)) as f:
-            self.worldText = f.read
+        self.rasterpath = raster
+        self.directory, self.filename = os.path.split(raster)
+        self.basefilename, self.extension = os.path.splitext(self.filename)
+        self.width, self.height = read_metadata.getsize(raster)
+        self.supportFiles = [x for x in os.listdir(self.directory) if x.split('.')[0] == self.basefilename]
+        self.worldfile = os.path.join(self.directory, findWorldFile(self.supportFiles))
+        self.parseWorldFile()
+        
+    def parseWorldFile(self, worldfile=None):
+        """"""
+        if not worldfile:
+            worldfile = self.worldfile
+            with open(worldfile) as f:
+                self.worldText = f.read()
         rows = self.worldText.split('\n')
+        fields = ['xpixelsize', 'xrotation', 'yrotation', 'ypixelsize', 'xorigin', 'yorigin']
+        for f, r in zip(fields, rows[:6]):
+            setattr(self, f, r)
         
-        return cls(*rows)
-        
-    def __init__(self, xpixelsize, xrotation, yrotation, ypixelsize, xorigin, yorigin, width=None, height=None, wkid=None):
+    def __init__(self, raster, wkid=None):
         """"""
-        self.xpixelsize = xpixelsize
-        self.xrotation = xrotation
-        self.yrotation = yrotation
-        self.ypixelsize = ypixelsize
-        self.xorigin = xorigin
-        self.yorigin = yorigin
-        self.width = width
-        self.height = height
-        self.wkid = wkid
+        self.rasterpath = raster
+        self.directory, self.filename = os.path.split(raster)
+        self.basefilename, self.extension = os.path.splitext(self.filename)
+        self.width, self.height = read_metadata.getsize(raster)
+        self.supportFiles = [x for x in os.listdir(self.directory) if x.split('.')[0] == self.basefilename]
+        self.worldfile = os.path.join(self.directory, findWorldFile(self.supportFiles))
+        self.parseWorldFile()
             
     def __str__(self):
         """"""
-        return '\n'.join(self.xpixelsize, self.xrotation, self.yrotation, self.ypixelsize, self.xorigin ,self.yorigin)
+        return '\n'.join([self.xpixelsize, self.xrotation, self.yrotation, self.ypixelsize, self.xorigin ,self.yorigin])
             
     def writeWorldFile(self, outfile):
         """"""
