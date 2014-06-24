@@ -1,9 +1,47 @@
 import sys
 import os
+import arcpy
 
 # make sure that we import WORLD_FILES and read_metadata
 WORLD_FILES = ['.jgw', '.jgwx', '.tfw', '.tfwx']
 import read_metadata
+
+def createPolygon(incoordinates, spref):
+    """takes lat lon incoordinates and returns an arcpy polygon"""
+    arrayObj = arcpy.Array()
+    pnt = arcpy.Point()
+    for lat, lon in incoordinates:
+        pnt.X, pnt.Y = lon, lat
+        arrayObj.add(pnt)
+    poly = arcpy.Polygon(arrayObj, spref)
+    return poly
+
+def parseFolder(indir, outshapefile):
+    """"""
+    # this is close to working
+    # just need to get the insert cursor to work appropriately
+    # i would throw in a recursion option so that we can easily send any folder to it
+    spref = arcpy.SpatialReference("NAD 1983 UTM Zone 17N")
+    cur = arcpy.InsertCursor(outshapefile)
+    os.chdir(indir)
+    files = os.listdir('.')
+    jpgs = [x for x in files if x[-4:] == '.jpg']
+    for jpg in jpgs:
+        basefilename, extension = os.path.splitext(jpg)
+        supportFiles = [x for x in os.listdir('.') if x.split('.')[0] == basefilename]
+        wf = findWorldFile(supportFiles)
+        if wf:
+            newrow = cur.newRow()
+            wld = WorldFile(os.path.join(indir, jpg))
+            corners = wld.getCorners()
+            corners = [corners['NW'], corners['NE'],corners['SE'], corners['SW']]
+            print corners
+            poly = createPolygon(corners, spref)
+            newrow.shape = poly
+            newrow.path = os.path.join(indir, jpg)
+            cur.insertRow(newrow)
+            del newrow
+    del cur
 
 def findWorldFile(supportFiles):
     """"""
@@ -17,10 +55,8 @@ def findWorldFile(supportFiles):
 
 class WorldFile(object):
     """"""
-    
-    # lets not use this - id rather make base class for scaling matrix and build this on top than have this be a class method
+
     @classmethod
-    
     def loadFromRasterPath(self, raster):
         """"""
         self.rasterpath = raster
@@ -44,7 +80,6 @@ class WorldFile(object):
         
     def __init__(self, raster, wkid=None):
         """"""
-        # we clearly need to convert to folats because we are trying to do some math here
         self.rasterpath = raster
         self.directory, self.filename = os.path.split(raster)
         self.basefilename, self.extension = os.path.splitext(self.filename)
@@ -60,7 +95,6 @@ class WorldFile(object):
     def writeWorldFile(self, outfile):
         """"""
         # we could change this using the string function for worldFile
-        # make sure that we dont have the esri flipping things around problem
         fields = ['xpixelsize', 'yrotation', 'xrotation', 'ypixelsize', 'xorigin', 'yorigin']
         with open(outfile, 'w') as f:
             for field in fields:
@@ -68,28 +102,23 @@ class WorldFile(object):
             
     def getCoordinate(self, pixel, row):
         """"""
-        x = self.xorigin + self.xpixelsize * pixel + self.yrotation * row
-        y = self.yorigin + self.ypixelsize * row + self.xrotation * pixel
+        x = self.xorigin + self.xpixelsize * pixel + self.xrotation * row
+        y = self.yorigin + self.ypixelsize * row + self.yrotation * pixel
         return x, y
         
     def getPixel(self, x, y):
         """"""
-        # need to figure out how to work the rotation term in, i should be better at math huh?
-        # if i really need help i can plug it into a solver (sympy)
-        # i also dont see this being the most needed thing though
-        xoffset = x - self.xorigin
-        yoffset = y - self.yorigin
-        # should the offsets be subtracted? for the rotations?
-        pixel = xoffset / self.xpixelsize + yoffset / self.yrotation
-        row = xoffset / self.xpixelsize + yoffset / self.yrotation
+        denom = self.xpixelsize * self.ypixelsize - self.yrotation * self.xrotation
+        pixel = (self.ypixelsize * x - self.xrotation * y + self.xrotation * self.yorigin - self.ypixelsize * self.xorigin) / denom
+        row = (-self.yrotation * x + self.xpixelsize * y + self.yrotation * self.xorigin - self.xpixelsize * self.yorigin) / denom
         return pixel, row
     
     def getCorners(self):
         """"""
-        mydict = {'nwcorner': (self.xorigin, self.yorigin),
-                  'necorner': self.getCoordinate(0, self.width),
-                  'secorner': self.getCoordinate(self.height, self.width),
-                  'swcorner': self.getCoordinate(self.height, 0)}
+        mydict = {'NW': (self.xorigin, self.yorigin),
+                  'NE': self.getCoordinate(self.width, 0),
+                  'SE': self.getCoordinate(self.width, self.height),
+                  'SW': self.getCoordinate(0, self.height)}
         return mydict
         
     @classmethod
