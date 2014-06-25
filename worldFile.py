@@ -18,7 +18,6 @@ def createPolygonGeojson(incoordinates, utmzone, outfile):
     else:
         return json.dumps(poly, indent=4)
     
-
 def createPolygon(incoordinates, spref):
     """takes lat lon incoordinates and returns an arcpy polygon"""
     arrayObj = arcpy.Array()
@@ -51,10 +50,18 @@ def parseFolder(indir, outshapefile):
             print corners
             poly = createPolygon(corners, spref)
             newrow.shape = poly
-            newrow.path = os.path.join(indir, jpg)
+            newrow.Filename = os.path.join(indir, jpg)
             cur.insertRow(newrow)
             del newrow
     del cur
+
+def parseFolderTree(indir, outshapefile):
+    for a, b, c in os.walk(indir):
+        mylist = (os.path.join(a,x) for x in b)
+        for i in mylist:
+            if os.path.isdir(i):
+                parseFolder(i, outshapefile)
+        
 
 def findWorldFile(supportFiles):
     """"""
@@ -87,7 +94,7 @@ class WorldFile(object):
             with open(worldfile) as f:
                 self.worldText = f.read()
         rows = self.worldText.split('\n')
-        fields = ['xpixelsize', 'xrotation', 'yrotation', 'ypixelsize', 'xorigin', 'yorigin']
+        fields = ['ypixelsize', 'xrotation', 'yrotation', 'xpixelsize', 'yorigin', 'xorigin']
         for f, r in zip(fields, rows[:6]):
             setattr(self, f, float(r))
         
@@ -108,7 +115,7 @@ class WorldFile(object):
     def writeWorldFile(self, outfile):
         """"""
         # we could change this using the string function for worldFile
-        fields = ['xpixelsize', 'yrotation', 'xrotation', 'ypixelsize', 'xorigin', 'yorigin']
+        fields = ['ypixelsize', 'xrotation', 'yrotation', 'xpixelsize', 'yorigin', 'xorigin']
         with open(outfile, 'w') as f:
             for field in fields:
                 f.write(getattr(self, field))
@@ -128,17 +135,17 @@ class WorldFile(object):
     
     def getCorners(self):
         """"""
-        mydict = {'NW': (self.xorigin, self.yorigin),
-                  'NE': self.getCoordinate(self.width, 0),
-                  'SE': self.getCoordinate(self.width, self.height),
-                  'SW': self.getCoordinate(0, self.height)}
+        mydict = {'NW': self.getCoordinate(-.5,-.5),
+                  'NE': self.getCoordinate(-.5,self.width-.5),
+                  'SE': self.getCoordinate(self.height-.5, self.width-.5),
+                  'SW': self.getCoordinate(self.height-.5, -.5)}
         return mydict
         
     @classmethod
     def createWorldFromCorners(cls, corners, raster):
         """"""
         from math import hypot
-        fields = ['xpixelsize', 'xrotation', 'yrotation', 'ypixelsize', 'xorigin', 'yorigin']
+        fields = ['ypixelsize', 'xrotation', 'yrotation', 'xpixelsize', 'yorigin', 'xorigin']
         average = lambda indict, inkey1, inkey2: (x['utmLat' + inkey1] + x['utmLat' + inkey2]) / 2, (x['utmLon' + inkey1] + x['utmLon' + inkey2]) / 2
         distance = lambda x,y: hypot(x[0] - y[0], x[1] - y[1])
         skew = lambda x, y: (x[1] - y[1]) / (x[0] - y[0])
@@ -164,3 +171,4 @@ def main():
     
 if __name__ == '__main__':
     main()
+
