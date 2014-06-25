@@ -1,10 +1,23 @@
 import sys
 import os
-import arcpy
+#import arcpy
+import geojson, json
 
 # make sure that we import WORLD_FILES and read_metadata
 WORLD_FILES = ['.jgw', '.jgwx', '.tfw', '.tfwx']
 import read_metadata
+
+def createPolygonGeojson(incoordinates, utmzone, outfile):
+    crs = {'type': 'EPSG', 'properties': {'code': 26900 + utmzone}}
+    poly = geojson.Polygon()
+    poly.coordinates=incoordinates
+    poly.crs = crs
+    if outfile:
+        with open(outfile, 'w') as f:
+            json.dump(poly, f)
+    else:
+        return json.dumps(poly, indent=4)
+    
 
 def createPolygon(incoordinates, spref):
     """takes lat lon incoordinates and returns an arcpy polygon"""
