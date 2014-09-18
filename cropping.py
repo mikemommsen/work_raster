@@ -8,7 +8,7 @@ INCHESPERFOOT = 12
 class LinearScale:
     """"""
     def __init__(self, domain=[0,1], outrange=[0,1], limit=False):
-        """"""
+        """a basic 2way linear scale that allows converting from a domain to a range"""
         if type(domain) == int:
             domain = [0, domain]
         if type(outrange) == int:
@@ -69,8 +69,7 @@ class ManyWayLinearScale:
         outz = inz * outDomain.extent
         outval = outz + outDomain.low
         return outval
-        
-        
+
 class ScaleTwoDimensions(object):
     """"""
     def __init__(self, domainX=[0,1], domainY=[0,1], outrangeX=[0,1], outrangeY=[0,1], limit=False):
@@ -87,9 +86,7 @@ class ScaleTwoDimensions(object):
     def invert(self):
         """"""
         return ScaleTwoDimensions(self.domainY, self.domainX, self.outrangeY, self.outrangeX, self.limit)
-        
-        
-        
+
 class MapDocument(ScaleTwoDimensions):
     """"""
     def __init__(self, width=8, height=9, scale=6000, corner=[0,0], cornertype='NW', spatialRef):
@@ -128,7 +125,7 @@ class MapDocument(ScaleTwoDimensions):
         self.corners = OrderedDict([('nw', nwCorner), ('ne', [topedge,leftedge]),
                                     ('se': [bottomedge,leftedge]), ('sw': [bottomedge,rightedge])])
         self.extent = {}
-        self.centroid = (nwCorner [0] - meterwidth, nwCorner[1] - meterheight)
+        self.centroid = (nwCorner[0] - meterwidth, nwCorner[1] - meterheight)
         super(self.__class__, self).__init__(width, height, [nwCorner[0],leftedge],[nwCorner[1], bottomedge])# look up the syntax for this shit - its pretty cool though
         
     def createArcPolygon(self):
@@ -140,9 +137,7 @@ class MapDocument(ScaleTwoDimensions):
             pnt.Y = corner[1]
             ar.append(pnt)
         poly = arcpy.Poly(ar, self.spatialRef)
-        
-        
-        
+
 def polyFromPoint(inPoint, mapwidth, mapheight, scale):
     """takes the upper left corner and returns a polygon """
     array = arcpy.array
