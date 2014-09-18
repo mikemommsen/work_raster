@@ -8,7 +8,7 @@ INCHESPERFOOT = 12
 class LinearScale:
     """"""
     def __init__(self, domain=[0,1], outrange=[0,1], limit=False):
-        """a basic 2way linear scale that allows converting from a domain to a range"""
+        """a basic linear scale that allows converting from a domain to a range"""
         if type(domain) == int:
             domain = [0, domain]
         if type(outrange) == int:
@@ -20,7 +20,7 @@ class LinearScale:
         self.limit = limit
     
     def get(self, inval):
-        """"""
+        """takes a value and converts it scaled to the outrange """
         if self.limit:
             assert self.domain[0] < inval < self.domain[1], 'needs to be inside the domain when limit is set to true'
         indiff = float(inval - self.domain[0])
@@ -30,11 +30,11 @@ class LinearScale:
         return outval
         
     def invert(self):
-        """"""
+        """returns a new scale that is the inverse of the current scale"""
         return LinearScale(self.outrange, self.domain, self.limit)
         
 class Domain:
-    """"""
+    """basic domain object with a high and low value, name, and a boolean for if its a limited scale or not"""
     def __init__(self, name, low, high, limit):
         """"""
         self.name = name
@@ -58,7 +58,7 @@ class ManyWayLinearScale:
         
     def __str__(self):
         """"""
-        return 'ManyWayLinearScale with domains {}'.format(', '.format(domains))
+        return 'ManyWayLinearScale with domains {}'.format(', '.join(map(str,domains)))
         
     def convert(self, inval, inDomain, outDomain):
         """"""
