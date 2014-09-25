@@ -1,9 +1,204 @@
 import sys
 import os
 import arcpy
-
+from collections import OrderedDict
+from read_metadata import getutmzone
+arcpy.env.overwriteOutput = True
+wgs84 = arcpy.SpatialReference('WGS 1984')
+# some basic wor
 INCHESPERMETER = 39.3701
 INCHESPERFOOT = 12
+QUARTER_MILE_IN_METERS = 402.336
+
+def findRasters(inFeature, rasterLayer, relationship):
+    """takes an HIG import polygon layer and returns the polygons that overlap"""
+    # we need to remember that this is only good for shapefiles with one feature in them and rework the syntax
+    ################################
+    # make a feature layer so we can select be location
+    arcpy.MakeFeatureLayer_management(rasterLayer, "TEMP_LAYER2")
+    # do the select by location to find all raster layer footprints that overlap the inFeature
+    arcpy.SelectLayerByLocation_management("TEMP_LAYER2", relationship, inFeature)
+    # start up a searchCursor so we can grab the filenames
+    cur = arcpy.SearchCursor("TEMP_LAYER2", ["Filename"])
+    # create a blank list
+    mylist=[]
+    # loop through each row of the table
+    for r in cur:
+        mylist.append(r.Filename)
+    # clean up by doing some deletes
+    del r, cur
+    arcpy.Delete_management("TEMP_LAYER2")
+    # and return the list of filenames
+    return mylist
+
+def shiftExtents(clipExtent, imageExtent):
+    """basic function to shift clipextents to remain the same size but inside of another extent"""
+    # logically this is a flawed function
+    # it assumes that the imageExtent is bigger than the crop box
+    # this should be its own class to deal with bbox logic
+    # it could allow for some set like operations
+    # and basic shifts
+    #comments start for real now
+    #############
+    # grab the length and width, arc has functions for this that i saw in the documentation
+    length = clipExtent.XMax - clipExtent.XMin
+    width = clipExtent.YMax - clipExtent.YMin
+    # create a blank dict because i am not sure if we can write in extent objects
+    # something to look into though
+    outExtent = {}
+    # if the top of the clipextent is higher than the top of the image move the clipbox down
+    if clipExtent.XMax > imageExtent.XMax:
+        outExtent['XMax'] = imageExtent.XMax
+        outExtent['XMin'] = imageExtent.XMax - length
+    # else if the top of the clipextent is lower move the whole thing up
+    elif clipExtent.XMin < imageExtent.XMin:
+        outExtent['XMin'] = imageExtent.XMin
+        outExtent['XMax'] = imageExtent.XMin + length
+    # if neither case from above is true there are no problems leave clip box where it was
+    else:
+        outExtent['XMin'] = clipExtent.XMin
+        outExtent['XMax'] = clipExtent.XMax
+    # same logic for Y as the above block
+    if clipExtent.YMax > imageExtent.YMax:
+        outExtent['YMax'] = imageExtent.YMax
+        outExtent['YMin'] = imageExtent.YMax - width
+    elif clipExtent.YMin < imageExtent.YMin:
+        outExtent['YMin'] = imageExtent.YMin
+        outExtent['YMax'] = imageExtent.YMin + width
+    else:
+        outExtent['YMin'] = clipExtent.YMin
+        outExtent['YMax'] = clipExtent.YMax
+    print outExtent
+    return arcpy.Extent(**outExtent)
+
+def selectTopos(orderNumber, inFeature=r'J:\GIS_Data\HIGCore\Orders.gdb\siteLn', outdir=r'C:\temp\topoCrops', topoImport=r'C:\Workspace\topo_work\topos.gdb\topos_7point5_minute_spatialjoin',grid=r'C:\Workspace\topo_work\topos.gdb\eighth_degree_grid'):
+    """takes an infeature and uses a 7.5 minute grid to return the topos that should be used.
+    if the Feature is close to the edge is a grid it will use shiftExtents to shift it close to the edge"""
+    # make the basic cropBox
+    poly = createCropBoxTopo(inFeature, orderNumber)
+    # select the input feature and save it as a variable
+    inFeature = arcpy.Select_analysis(inFeature, r'C:\temp2\temp_feature.shp', """ "Orders"= '{}' """.format(orderNumber))[0]
+    # buffer that feature by one quarter mile
+    buffered = arcpy.Buffer_analysis(inFeature, r'C:\temp2\temp_feature_buffer.shp', '{} meters'.format(QUARTER_MILE_IN_METERS))
+    intersectedGrid = arcpy.SpatialJoin_analysis(grid, buffered, r'C:\temp2\temp_grid.shp', '','KEEP_COMMON')
+    cur = arcpy.SearchCursor(intersectedGrid)
+    for r in cur:
+        cellCentroid = r.SHAPE.centroid
+        utmzonestr = getutmzone(cellCentroid.X)
+        print utmzonestr
+        utmzone = arcpy.SpatialReference(utmzonestr)
+        cellExtent = r.SHAPE.extent.projectAs(utmzone)
+        cellBoundPoly = shiftExtents(poly.projectAs(utmzone).extent, cellExtent)
+        # all garbage to turn the extent into a rectangle
+        centerOfCellBoundPoly = (cellBoundPoly.XMax - (cellBoundPoly.XMax - cellBoundPoly.XMin)/2, cellBoundPoly.YMax - (cellBoundPoly.YMax - cellBoundPoly.YMin)/2)
+        point = arcpy.PointGeometry(arcpy.Point(X=centerOfCellBoundPoly[0],Y=centerOfCellBoundPoly[1]), utmzone).projectAs(wgs84)
+        mapDoc = MapDocument(scale=24000, centroid=(point.firstPoint.Y,point.firstPoint.X))
+        cellBoundPoly = mapDoc.createArcPolygon()
+        # GARBAGE ENDS HERE
+        oid = r.id
+        print oid
+        rasterCur = arcpy.SearchCursor(topoImport,""""Id"={}""".format(oid))
+        for rr in rasterCur:
+            topoPath = rr.Filename
+            print topoPath
+            clipByPoly(cellBoundPoly, topoPath, outdir, topo=True)
+        if 'rr' in vars().keys():
+            del rr, rasterCur
+    del r, cur
+    # delete the temp files
+    # some of these can be handled as variables which might save some time, code, and effort
+    arcpy.Delete_management(intersectedGrid)
+    arcpy.Delete_management(buffered)
+    arcpy.Delete_management(inFeature)
+    return True
+
+def cropBothScales(orderNumber):
+    """calls selectTopos on both 7.5 and 15 minute scales"""
+    # with the presets it works on the 7.5 minute grid
+    selectTopos(orderNumber)
+    # feed the files to it so it runs 15 minute
+    selectTopos(orderNumber, topoImport=r'C:\Workspace\topo_work\topos.gdb\topos_15_minute_SpatialJoin',grid=r'C:\Workspace\topo_work\topos.gdb\quarter_degree_grid')
+    
+def clipByPoly(inPoly, inraster, outdir,topo=False):
+    """takes a polygon and clips the inraster to its extent and places output in the outdir"""
+    #thoughts: this would be better if we looked to see if the raster is already in the right projection before going through all the steps in the try clause
+    # get the raster description
+    rasterDesc = arcpy.Describe(inraster)
+    # so we can get the spatialReference of the raster
+    rasterSpref = rasterDesc.spatialReference
+    # and also the extent of the raster
+    rasterExtent = rasterDesc.extent.projectAs(inPoly.spatialReference)
+    # use the shiftExtents function to move the clip extent to be within the raster extent
+    if topo:
+        rawutmextent = inPoly.extent
+    else:
+        rawutmextent = shiftExtents(inPoly.extent, rasterExtent)
+    # format the extent object for clipping
+    utmextent = ' '.join(map(str,(rawutmextent.XMin, rawutmextent.YMin,rawutmextent.XMax, rawutmextent.YMax)))
+    # project the clip extent into the spatialReference of the raster
+    rawextent = inPoly.projectAs(rasterSpref).extent
+    # and reformat that as well
+    extent = ' '.join(map(str,(rawextent.XMin, rawextent.YMin,rawextent.XMax, rawextent.YMax)))
+    # create the output name
+    # note that we are using tif so this actually works
+    outName = os.path.join(outdir, os.path.split(inraster)[1][:-4] + '.tif')
+    # do the initial clip to get the potion of the raster that we need
+    arcpy.Clip_management(inraster, extent, outName, "", "", 'NONE')
+    # create a name for a temp file
+    reprojectName = outName[:-4] + 'reproject' + outName[-4:]
+    # this part can fail so we put it in a try clause
+    try:
+        # project the clipped raster into the correct UTM
+        arcpy.ProjectRaster_management(outName, reprojectName, inPoly)
+        # delete the original clip
+        arcpy.Delete_management(outName)
+        # reclip the reprojected raster
+        arcpy.Clip_management(reprojectName ,utmextent, outName, "", "", 'NONE')
+        # and delete the reprojected unclipped raster
+        arcpy.Delete_management(reprojectName)
+    except Exception as e:
+        print e, outName
+    
+def createCropBoxTopo(infeature, orderNumber,scale=24000):
+    """creates a polygon based off of the order layer with presets for topo. scale is para"""
+    # grab the centroid from the order table
+    # note that this is flawed because we can have orders that have many rows
+    centroid = arcpy.Select_analysis(infeature, arcpy.Geometry(), """ "Orders"= '{}' """.format(orderNumber))[0].centroid
+    # flip the fucking point because of fucking arc
+    centroid = (centroid.Y,centroid.X)
+    # create a MapDocument class
+    mapDoc = MapDocument(scale=scale, centroid=centroid)
+    # which allows us to create a polygon
+    poly = mapDoc.createArcPolygon()
+    return poly
+
+def createClipsTopo(inFeatureOrderNumber, inFeature=r'J:\GIS_Data\HIGCore\Orders.gdb\siteLn', rasterLayer=r'C:\HIGCore\HIGCore.gdb\TopoImport', relationship='intersect', outdir=r'C:\temp\topoCrops'):
+    """"""
+    # createa polygon for the orderNumber
+    poly = createCropBoxTopo(inFeature, inFeatureOrderNumber)
+    # below is generic logic not for our order layers that i will save in this comment in case i want it in the future
+    #poly = arcpy.Select_analysis(inFeature, arcpy.Geometry(), """ "NAME"= '{}' """.format(inFeatureOrderNumber))[0]
+    # use the findRasters function to find all rasters that spatial relate with the relationship given to the polygon
+    rasters = findRasters(poly, rasterLayer, relationship)
+    # loop through each raster and clip them into the output folder
+    for raster in rasters:
+        clipByPoly(poly, raster, outdir)
+
+def createClipsPhotos(inFeatureOrderNumber,inFeature=r'J:\GIS_Data\HIGCore\Orders.gdb\siteLn',rasterLayer=r'C:\HIGCore\HIGCore.gdb\CountyMosaicImport', relationship='intersect', outdir=r'C:\temp\topoCrops'):
+    """specialized function with the presets for photos"""
+    poly = createCropBoxTopo(inFeature, inFeatureOrderNumber,scale=6000)
+    rasters = findRasters(poly, rasterLayer, relationship)
+    for raster in rasters:
+        clipByPoly(poly, raster, outdir)
+
+def createAllClipsPhotos(inFeatureOrderNumber):
+    """specialized function with the presets for the 3 photo layers that we usually use for jobs"""
+    # notice that when we call this on county and project which are single frame we only are looking for photos that contain the crop polygon
+    createClipsPhotos(inFeatureOrderNumber, rasterLayer=r'C:\HIGCore\HIGCore.gdb\CountyAndProjectImport',relationship='contains')
+    # we may need to look up image analyst commands so we can merge doqqs when we are on the edge 
+    createClipsPhotos(inFeatureOrderNumber, rasterLayer=r'C:\HIGCore\HIGCore.gdb\DOQQImport')
+    # with all the normal presets if does the county mosaics
+    createClipsPhotos(inFeatureOrderNumber)
 
 class LinearScale:
     """"""
@@ -89,54 +284,55 @@ class ScaleTwoDimensions(object):
 
 class MapDocument(ScaleTwoDimensions):
     """"""
-    def __init__(self, width=8, height=9, scale=6000, corner=[0,0], cornertype='NW', spatialRef):
+    def __init__(self, width=8, height=9, scale=6000, centroid=[0,0], spatialRef=None):
         """takes dimensions of a map document in inches, the scale, corner in localUtm, and spatialRef for that corner.
         this function creates a mike mommsen MapDocument, which should allow for some nice cropping options.
         the cornerType  starts with N|S|C for if the corner is north, south, or central.
         the second char of cornertype is E|W|C for east, west, central."""
+        # update these comments to reflect the latest changes that i have made
         self.width = width
         self.height = height
         self.scale = scale
         meterscale = scale / INCHESPERMETER
         self.meterwidth = meterwidth = width * meterscale
         self.meterheight = meterheight = height * meterscale
-        # this section allows corner changing - maybe seperate function that is called by __init__
-        if cornertype[0] ==  'N':
-            pass
-        elif cornertype[0] == 'S':
-            corner[0] -= meterwidth
-        elif cornertype[0] == 'C':
-            corner[0] -= (meterwidth / 2)
+        if spatialRef:
+            self.spatialRef=arcpy.SpatialReference(spatialRef)
         else:
-            print 'unrecognized cornertype'
-        if cornertype[1] ==  'W':
-            pass
-        elif cornertype[1] == 'E':
-            corner[1] -= meterheight
-        elif cornertype[1] == 'C':
-            corner[1] -= (meterheight / 2)
-        else:
-            print 'unrecognized cornertype'
-        # section ends here
-        rightedge = x[0]
-        topedge = x[1]
-        leftedge = x[0] + meterwidth
-        bottomedge = x[1] - meterheight
-        self.corners = OrderedDict([('nw', nwCorner), ('ne', [topedge,leftedge]),
-                                    ('se': [bottomedge,leftedge]), ('sw': [bottomedge,rightedge])])
-        self.extent = {}
-        self.centroid = (nwCorner[0] - meterwidth, nwCorner[1] - meterheight)
-        super(self.__class__, self).__init__(width, height, [nwCorner[0],leftedge],[nwCorner[1], bottomedge])# look up the syntax for this shit - its pretty cool though
-        
-    def createArcPolygon(self):
+            self.setSpatialReference(centroid)
+        self.centroid = centroid
+        utmCentroid = arcpy.PointGeometry(arcpy.Point(X=centroid[1],Y=centroid[0]), wgs84).projectAs(self.spatialRef)
+        x = (utmCentroid.firstPoint.X, utmCentroid.firstPoint.Y)
+        print x
+        rightedge = x[0] - meterwidth /2
+        topedge = x[1] + meterheight/2
+        leftedge = x[0] + meterwidth/2
+        bottomedge = x[1] - meterheight/2
+        self.corners = OrderedDict([('nw', [topedge,rightedge]), ('ne', [topedge,leftedge]), ('se', [bottomedge,leftedge]), ('sw', [bottomedge,rightedge])])
+        super(self.__class__, self).__init__(width, height, [x[0],leftedge],[x[1], bottomedge])# look up the syntax for this shit - its pretty cool though
+
+    def setSpatialReference(self,point):
+        # if the user did not define a spatialReference
+        utmzone = getutmzone(point[1])
+        self.spatialRef = arcpy.SpatialReference(utmzone)
+            
+    def createArcPolygon(self,outshp=None):
         """"""
-        ar = arcpy.Array
-        pnt = arcpy.Point
+        ar = arcpy.Array()
+        pnt = arcpy.Point()
         for corner in self.corners.values():
-            pnt.X = corner[0]
-            pnt.Y = corner[1]
+            pnt.X = corner[1]
+            pnt.Y = corner[0]
             ar.append(pnt)
-        poly = arcpy.Poly(ar, self.spatialRef)
+        poly = arcpy.Polygon(ar, self.spatialRef)
+        if outshp:
+            cur = arcpy.InsertCursor(outshp)
+            r = cur.newRow()
+            r.setValue("shape", poly)
+            cur.insertRow(r)
+            del r, cur
+        else:
+            return poly
 
 def polyFromPoint(inPoint, mapwidth, mapheight, scale):
     """takes the upper left corner and returns a polygon """
@@ -156,20 +352,44 @@ def changeCorners(inPoint, mapwidth, mapheight, scale, inPointCorner, outPointCo
     surfacewidth = mapwidth * scale
     surfaceheight = mapheight * scale
     if inPointCorner == 'C':
-        
+        pass
     elif inPointCorner == 'NW':
-        
+        pass
     elif inPointCorner == 'NE':
+        pass
     
     elif inPointCorner == 'SE':
-        
+        pass
     elif inPointCorner == 'SW':
-    
-        
+        pass
+
+def GARBAGE_PULLED_FROM_INIT():
+        # this section allows corner changing - maybe seperate function that is called by __init__
+        # one more problem is that we need to know the utm zone to know other conversions
+        if cornertype[0] ==  'N':
+            pass
+        elif cornertype[0] == 'S':
+            corner[0] -= meterwidth
+        elif cornertype[0] == 'C':
+            corner[0] -= (meterwidth / 2)
+        else:
+            print 'unrecognized cornertype'
+        if cornertype[1] ==  'W':
+            pass
+        elif cornertype[1] == 'E':
+            corner[1] += meterheight
+        elif cornertype[1] == 'C':
+            corner[1] += (meterheight / 2)
+        else:
+            print 'unrecognized cornertype'
+        # section ends here
 
 def main():
-    arg1 = sys.argv[1]
-    arg2 = sys.argv[2]
+    if len(sys.argv) == 2:
+        arg1 = sys.argv[1]
+        arg2 = sys.argv[2]
+    else:
+        pass
 
 if __name__ == '__main__':
     main()
