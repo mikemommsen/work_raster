@@ -75,42 +75,61 @@ def selectTopos(orderNumber, inFeature=r'J:\GIS_Data\HIGCore\Orders.gdb\siteLn',
     """takes an infeature and uses a 7.5 minute grid to return the topos that should be used.
     if the Feature is close to the edge is a grid it will use shiftExtents to shift it close to the edge"""
     # make the basic cropBox
-    poly = createCropBoxTopo(inFeature, orderNumber)
-    # select the input feature and save it as a variable
-    inFeature = arcpy.Select_analysis(inFeature, r'C:\temp2\temp_feature.shp', """ "Orders"= '{}' """.format(orderNumber))[0]
+    # if it has a length of two we assume it is a lat lon pair and create our geom for that
+    if len(orderNumber)== 2:
+        mapDoc = MapDocument(scale=24000, centroid=orderNumber)
+        poly = mapDoc.createArcPolygon()
+        inFeature = arcpy.PointGeometry(arcpy.Point(X=orderNumber[1],Y=orderNumber[0]), wgs84)
+    # otherwise it is probably an order number
+    # maybe we should assert that it starts with a 1, has a length between 7 and 8, is a string, or something else
+    else:
+        poly = createCropBoxTopo(inFeature, orderNumber)
+        # select the input feature and save it as a variable
+        inFeature = arcpy.Select_analysis(inFeature, r'C:\temp2\temp_feature.shp', """ "Orders"= '{}' """.format(orderNumber))[0]
     # buffer that feature by one quarter mile
     buffered = arcpy.Buffer_analysis(inFeature, r'C:\temp2\temp_feature_buffer.shp', '{} meters'.format(QUARTER_MILE_IN_METERS))
+    # find the portions of the grid that intersect the buffered layer
     intersectedGrid = arcpy.SpatialJoin_analysis(grid, buffered, r'C:\temp2\temp_grid.shp', '','KEEP_COMMON')
+    # start a search cursor on the grid sections that touch the buffered layer
     cur = arcpy.SearchCursor(intersectedGrid)
     for r in cur:
+        # grab the centroid for the current grid
         cellCentroid = r.SHAPE.centroid
+        # find out what the utmzone is for the centroid
         utmzonestr = getutmzone(cellCentroid.X)
-        print utmzonestr
+        # turn it into a spatialReference object
         utmzone = arcpy.SpatialReference(utmzonestr)
+        # grab the extent of the 7.5 minute cell
         cellExtent = r.SHAPE.extent.projectAs(utmzone)
+        # shift the crop box to match the cell
         cellBoundPoly = shiftExtents(poly.projectAs(utmzone).extent, cellExtent)
         # all garbage to turn the extent into a rectangle
+        # so to get around this we need to make it so that clipByPoly can take an extent or polygon and not just a polygon
         centerOfCellBoundPoly = (cellBoundPoly.XMax - (cellBoundPoly.XMax - cellBoundPoly.XMin)/2, cellBoundPoly.YMax - (cellBoundPoly.YMax - cellBoundPoly.YMin)/2)
         point = arcpy.PointGeometry(arcpy.Point(X=centerOfCellBoundPoly[0],Y=centerOfCellBoundPoly[1]), utmzone).projectAs(wgs84)
         mapDoc = MapDocument(scale=24000, centroid=(point.firstPoint.Y,point.firstPoint.X))
         cellBoundPoly = mapDoc.createArcPolygon()
         # GARBAGE ENDS HERE
+        # grab the oid
         oid = r.id
-        print oid
+        # which allows us to select the rasters that touch that grid
         rasterCur = arcpy.SearchCursor(topoImport,""""Id"={}""".format(oid))
+        # loop through those rasters that belong to that grid
         for rr in rasterCur:
+            # grab the filename
             topoPath = rr.Filename
-            print topoPath
+            # and feed all the information to clipByPoly function
             clipByPoly(cellBoundPoly, topoPath, outdir, topo=True)
+        # there will not always be topos for each grid so we need to use caution when deleting the rr
         if 'rr' in vars().keys():
-            del rr, rasterCur
+            del rr
+        del rasterCur
     del r, cur
     # delete the temp files
     # some of these can be handled as variables which might save some time, code, and effort
     arcpy.Delete_management(intersectedGrid)
     arcpy.Delete_management(buffered)
     arcpy.Delete_management(inFeature)
-    return True
 
 def cropBothScales(orderNumber):
     """calls selectTopos on both 7.5 and 15 minute scales"""
@@ -121,17 +140,19 @@ def cropBothScales(orderNumber):
     
 def clipByPoly(inPoly, inraster, outdir,topo=False):
     """takes a polygon and clips the inraster to its extent and places output in the outdir"""
-    #thoughts: this would be better if we looked to see if the raster is already in the right projection before going through all the steps in the try clause
     # get the raster description
     rasterDesc = arcpy.Describe(inraster)
     # so we can get the spatialReference of the raster
     rasterSpref = rasterDesc.spatialReference
     # and also the extent of the raster
     rasterExtent = rasterDesc.extent.projectAs(inPoly.spatialReference)
-    # use the shiftExtents function to move the clip extent to be within the raster extent
+    # if it is a topo
     if topo:
+        # then we use the extent without a shift because we know it is good already
         rawutmextent = inPoly.extent
+    # otherwise it is for a photo or something else and we dont know that the extent is already matched up
     else:
+        # use the shiftExtents function to move the clip extent to be within the raster extent
         rawutmextent = shiftExtents(inPoly.extent, rasterExtent)
     # format the extent object for clipping
     utmextent = ' '.join(map(str,(rawutmextent.XMin, rawutmextent.YMin,rawutmextent.XMax, rawutmextent.YMax)))
@@ -145,6 +166,8 @@ def clipByPoly(inPoly, inraster, outdir,topo=False):
     # do the initial clip to get the potion of the raster that we need
     arcpy.Clip_management(inraster, extent, outName, "", "", 'NONE')
     # create a name for a temp file
+    if rasterSpref == inPoly.spatialReference:
+        return None
     reprojectName = outName[:-4] + 'reproject' + outName[-4:]
     # this part can fail so we put it in a try clause
     try:
@@ -163,6 +186,7 @@ def createCropBoxTopo(infeature, orderNumber,scale=24000):
     """creates a polygon based off of the order layer with presets for topo. scale is para"""
     # grab the centroid from the order table
     # note that this is flawed because we can have orders that have many rows
+    # makes me think that we should do a dissolve on order number or something
     centroid = arcpy.Select_analysis(infeature, arcpy.Geometry(), """ "Orders"= '{}' """.format(orderNumber))[0].centroid
     # flip the fucking point because of fucking arc
     centroid = (centroid.Y,centroid.X)
@@ -312,6 +336,7 @@ class MapDocument(ScaleTwoDimensions):
         super(self.__class__, self).__init__(width, height, [x[0],leftedge],[x[1], bottomedge])# look up the syntax for this shit - its pretty cool though
 
     def setSpatialReference(self,point):
+        """"""
         # if the user did not define a spatialReference
         utmzone = getutmzone(point[1])
         self.spatialRef = arcpy.SpatialReference(utmzone)
@@ -334,19 +359,6 @@ class MapDocument(ScaleTwoDimensions):
         else:
             return poly
 
-def polyFromPoint(inPoint, mapwidth, mapheight, scale):
-    """takes the upper left corner and returns a polygon """
-    array = arcpy.array
-    pnt = arcpy.Point()
-    surfacewidth = mapwidth * scale
-    surfaceheight = mapheight * scale
-    nw = inPoint.X, inPoint.Y
-    ne = inPoint.X - surfacewidth, inPoint.Y
-    se = inPoint.X - surfacewidth, inPoint.Y - surfaceheight
-    sw = inPoint.X, inPoint.Y - surfaceheight
-    poly = arcpy.Polygon(array([nw, ne, se, sw])) # make sure that we get the SRID in here, or whatever arc wants
-    return poly
-    
 def changeCorners(inPoint, mapwidth, mapheight, scale, inPointCorner, outPointCorner):
     """"""
     surfacewidth = mapwidth * scale
@@ -357,32 +369,31 @@ def changeCorners(inPoint, mapwidth, mapheight, scale, inPointCorner, outPointCo
         pass
     elif inPointCorner == 'NE':
         pass
-    
     elif inPointCorner == 'SE':
         pass
     elif inPointCorner == 'SW':
         pass
 
 def GARBAGE_PULLED_FROM_INIT():
-        # this section allows corner changing - maybe seperate function that is called by __init__
-        # one more problem is that we need to know the utm zone to know other conversions
-        if cornertype[0] ==  'N':
-            pass
-        elif cornertype[0] == 'S':
-            corner[0] -= meterwidth
-        elif cornertype[0] == 'C':
-            corner[0] -= (meterwidth / 2)
-        else:
-            print 'unrecognized cornertype'
-        if cornertype[1] ==  'W':
-            pass
-        elif cornertype[1] == 'E':
-            corner[1] += meterheight
-        elif cornertype[1] == 'C':
-            corner[1] += (meterheight / 2)
-        else:
-            print 'unrecognized cornertype'
-        # section ends here
+    # this section allows corner changing - maybe seperate function that is called by __init__
+    # one more problem is that we need to know the utm zone to know other conversions
+    if cornertype[0] ==  'N':
+        pass
+    elif cornertype[0] == 'S':
+        corner[0] -= meterwidth
+    elif cornertype[0] == 'C':
+        corner[0] -= (meterwidth / 2)
+    else:
+        print 'unrecognized cornertype'
+    if cornertype[1] ==  'W':
+        pass
+    elif cornertype[1] == 'E':
+        corner[1] += meterheight
+    elif cornertype[1] == 'C':
+        corner[1] += (meterheight / 2)
+    else:
+        print 'unrecognized cornertype'
+    # section ends here
 
 def main():
     if len(sys.argv) == 2:
