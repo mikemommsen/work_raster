@@ -10,23 +10,25 @@ INCHESPERMETER = 39.3701
 INCHESPERFOOT = 12
 QUARTER_MILE_IN_METERS = 402.336
 
-def findRasters(inFeature, rasterLayer, relationship):
-    """takes an HIG import polygon layer and returns the polygons that overlap"""
-    # we need to remember that this is only good for shapefiles with one feature in them and rework the syntax
-    ################################
+def findRasters(inFeature, targetLayer, relationship='intersect',fields=['Filename']):
+    """takes a polygon layer and returns the values for the fields that relate with the inFeature"""
+    print True
     # make a feature layer so we can select be location
-    arcpy.MakeFeatureLayer_management(rasterLayer, "TEMP_LAYER2")
+    arcpy.MakeFeatureLayer_management(targetLayer, "TEMP_LAYER2")
     # do the select by location to find all raster layer footprints that overlap the inFeature
     arcpy.SelectLayerByLocation_management("TEMP_LAYER2", relationship, inFeature)
     # start up a searchCursor so we can grab the filenames
-    cur = arcpy.SearchCursor("TEMP_LAYER2", ["Filename"])
+    cur = arcpy.da.SearchCursor("TEMP_LAYER2", fields)
     # create a blank list
     mylist=[]
     # loop through each row of the table
     for r in cur:
-        mylist.append(r.Filename)
+        print 'here'
+        mylist.append(r)
     # clean up by doing some deletes
-    del r, cur
+    if 'r' in vars().keys():
+        del r
+    del cur
     arcpy.Delete_management("TEMP_LAYER2")
     # and return the list of filenames
     return mylist
@@ -71,7 +73,80 @@ def shiftExtents(clipExtent, imageExtent):
     print outExtent
     return arcpy.Extent(**outExtent)
 
-def selectTopos(orderNumber, inFeature=r'J:\GIS_Data\HIGCore\Orders.gdb\siteLn', outdir=r'C:\temp\topoCrops', topoImport=r'C:\Workspace\topo_work\topos.gdb\topos_7point5_minute_spatialjoin',grid=r'C:\Workspace\topo_work\topos.gdb\eighth_degree_grid'):
+def geomListToExtent(geomlist):
+    """takes a list of arc geometry objects and returns the extent"""
+    extents = []
+    # make a blank arcpy extent object to fill up later
+    outextent = arcpy.Extent()
+    # loop through each geometry and grab its extent
+    for geom in geomlist:
+        extents.append(geom.extent)
+    # is there a better way to get the min and max all at once?
+    outextent.XMax = max(x.XMax for x in extents)
+    outextent.XMin = min(x.XMin for x in extents)
+    outextent.YMax = max(x.YMax for x in extents)
+    outextent.YMin = min(x.YMin for x in extents)
+    return outextent
+
+def geomListToCentroid(geomlist):
+    """takes a geometry list and finds the centroid"""
+    # get the extent for the whole geomList
+    extent = geomListToExtent(geomlist)
+    # grab the middle of that extent
+    xCentroid = 0.5 * (extent.XMin + extent.XMax)
+    yCentroid = 0.5 * (extent.YMin + extent.YMax)
+    # and return it
+    return xCentroid, yCentroid
+
+def extentToArcPolygon(extent):
+    """takes an arcpy extent and creates an arcpy polygon"""
+    # blank array and point
+    ar = arcpy.Array()
+    ar.add(extent.upperLeft)
+    ar.add(extent.upperRight)
+    ar.add(extent.lowerRight)
+    ar.add(extent.lowerLeft)
+    ar.add(extent.upperLeft)
+    return arcpy.Polygon(ar, extent.spatialReference)
+
+# this function is very similar to findRasters so we should merge them where possible
+def findIntersecting(geomlist, otherLayer=r'C:\Workspace\topo_work\topos.gdb\topos_7point5_minute_spatialjoin', relationship="WITHIN", search_radius=".25 Miles", fields=['Id']):
+    """takes a geometry list and returns values for the fields as a list of lists from the otherLayer that relate spatially with the relationship.
+    search_radius will be used only for relationships that use it like within"""
+    # the upper part here is to make a quick selection before making a feature layer which can be slow with bigger shapefiles
+    # not sure if this specific of an approach is a good idea, but it can be removed anyway and skip down to the MakeFeatureLayer clause later if its not needed
+    # make the extent
+    extent = geomListToExtent(geomlist)
+    # turn it into a polygon
+    poly = extentToArcPolygon(extent)
+    # find the portion of the otherLayer that touches that extent
+    intersectedGrid = arcpy.SpatialJoin_analysis(otherLayer, poly, r'C:\temp2\temp_grid.shp', '','KEEP_COMMON', match_option=relationship, search_radius=search_radius)
+    # turn that into a feature layer
+    arcpy.MakeFeatureLayer_management(intersectedGrid, 'TEMP_LAYER')
+    for geom in geomlist:
+        arcpy.SelectLayerByLocation_management('TEMP_LAYER', relationship, geom, search_distance=search_radius, selection_type="ADD_TO_SELECTION")
+    cur = arcpy.SearchCursor("TEMP_LAYER")
+    outlist = []
+    for r in cur:
+        outlist.append([r.getValue(x) for x in fields])
+    # delete to clean up some trash
+    arcpy.Delete_management("TEMP_LAYER")
+    arcpy.Delete_management(intersectedGrid)
+    return outlist
+
+def findOrder(orderNumber, queryField="Orders", buffer_dist=QUARTER_MILE_IN_METERS, inFeatures=[r'J:\GIS_Data\HIGCore\Orders.gdb\sitePy', r'J:\GIS_Data\HIGCore\Orders.gdb\sitePt', r'J:\GIS_Data\HIGCore\Orders.gdb\siteLn']):
+    """this function takes an order number and returns a python list of all of the shapes that we have for it"""
+    # create a blank list
+    outlist = []
+    # loop through each feature
+    for feat in inFeatures:
+        # select all features where the queryField equals the orderNumber
+        geom = arcpy.Select_analysis(feat, arcpy.Geometry(), """ "{}"= '{}' """.format(queryField, orderNumber))
+        # add each list of features to the list (unlike append this makes a flat list)
+        outlist += geom
+    return outlist
+
+def selectTopos(orderNumber, inFeature=r'J:\GIS_Data\HIGCore\Orders.gdb\sitePy', outdir=r'C:\temp\topoCrops', topoImport=r'C:\Workspace\topo_work\topos.gdb\topos_7point5_minute_spatialjoin',grid=r'C:\Workspace\topo_work\topos.gdb\eighth_degree_grid'):
     """takes an infeature and uses a 7.5 minute grid to return the topos that should be used.
     if the Feature is close to the edge is a grid it will use shiftExtents to shift it close to the edge"""
     # make the basic cropBox
@@ -131,17 +206,21 @@ def selectTopos(orderNumber, inFeature=r'J:\GIS_Data\HIGCore\Orders.gdb\siteLn',
     arcpy.Delete_management(buffered)
     arcpy.Delete_management(inFeature)
 
-def cropBothScales(orderNumber):
+def cropBothScales(orderNumber,inFeature=r'J:\GIS_Data\HIGCore\Orders.gdb\sitePy', outdir=r'C:\temp\topoCrops'):
     """calls selectTopos on both 7.5 and 15 minute scales"""
     # with the presets it works on the 7.5 minute grid
-    selectTopos(orderNumber)
+    selectTopos(orderNumber, inFeature=inFeature, outdir=outdir)
     # feed the files to it so it runs 15 minute
-    selectTopos(orderNumber, topoImport=r'C:\Workspace\topo_work\topos.gdb\topos_15_minute_SpatialJoin',grid=r'C:\Workspace\topo_work\topos.gdb\quarter_degree_grid')
+    selectTopos(orderNumber, topoImport=r'C:\Workspace\topo_work\topos.gdb\topos_15_minute_SpatialJoin', grid=r'C:\Workspace\topo_work\topos.gdb\quarter_degree_grid', inFeature=inFeature, outdir=outdir)
     
-def clipByPoly(inPoly, inraster, outdir,topo=False):
+def clipByPoly(inPoly, inraster, outdir, topo=False):
     """takes a polygon and clips the inraster to its extent and places output in the outdir"""
     # get the raster description
-    rasterDesc = arcpy.Describe(inraster)
+    try:
+        rasterDesc = arcpy.Describe(inraster)
+    except Exception as e:
+        print e, inraster, 'here'
+        return None
     # so we can get the spatialReference of the raster
     rasterSpref = rasterDesc.spatialReference
     # and also the extent of the raster
@@ -155,21 +234,28 @@ def clipByPoly(inPoly, inraster, outdir,topo=False):
         # use the shiftExtents function to move the clip extent to be within the raster extent
         rawutmextent = shiftExtents(inPoly.extent, rasterExtent)
     # format the extent object for clipping
+
     utmextent = ' '.join(map(str,(rawutmextent.XMin, rawutmextent.YMin,rawutmextent.XMax, rawutmextent.YMax)))
     # project the clip extent into the spatialReference of the raster
     rawextent = inPoly.projectAs(rasterSpref).extent
     # and reformat that as well
     extent = ' '.join(map(str,(rawextent.XMin, rawextent.YMin,rawextent.XMax, rawextent.YMax)))
+    if rasterExtent.disjoint(extentToArcPolygon(rawutmextent)):
+        print 'this is stupid'
+        return None
+
     # create the output name
     # note that we are using tif so this actually works
     outName = os.path.join(outdir, os.path.split(inraster)[1][:-4] + '.tif')
     # do the initial clip to get the potion of the raster that we need
     arcpy.Clip_management(inraster, extent, outName, "", "", 'NONE')
-    # create a name for a temp file
+    # if the raster spatial reference is the same as the output we can exit the function right now
     if rasterSpref == inPoly.spatialReference:
-        return None
+        return True
+    # create a name for a temp file
     reprojectName = outName[:-4] + 'reproject' + outName[-4:]
     # this part can fail so we put it in a try clause
+    # seems like most of the failures were caused by a lock, so these are not a huge issue but should still be in the try block
     try:
         # project the clipped raster into the correct UTM
         arcpy.ProjectRaster_management(outName, reprojectName, inPoly)
@@ -181,9 +267,10 @@ def clipByPoly(inPoly, inraster, outdir,topo=False):
         arcpy.Delete_management(reprojectName)
     except Exception as e:
         print e, outName
+    return True
     
 def createCropBoxTopo(infeature, orderNumber,scale=24000):
-    """creates a polygon based off of the order layer with presets for topo. scale is para"""
+    """creates a polygon based off of the order layer with presets for topo. scale is parameter to make it more usable for other shit."""
     # grab the centroid from the order table
     # note that this is flawed because we can have orders that have many rows
     # makes me think that we should do a dissolve on order number or something
@@ -198,31 +285,35 @@ def createCropBoxTopo(infeature, orderNumber,scale=24000):
 
 def createClipsTopo(inFeatureOrderNumber, inFeature=r'J:\GIS_Data\HIGCore\Orders.gdb\siteLn', rasterLayer=r'C:\HIGCore\HIGCore.gdb\TopoImport', relationship='intersect', outdir=r'C:\temp\topoCrops'):
     """"""
-    # createa polygon for the orderNumber
+    # create a polygon for the orderNumber
     poly = createCropBoxTopo(inFeature, inFeatureOrderNumber)
     # below is generic logic not for our order layers that i will save in this comment in case i want it in the future
-    #poly = arcpy.Select_analysis(inFeature, arcpy.Geometry(), """ "NAME"= '{}' """.format(inFeatureOrderNumber))[0]
+    # poly = arcpy.Select_analysis(inFeature, arcpy.Geometry(), """ "NAME"= '{}' """.format(inFeatureOrderNumber))[0]
     # use the findRasters function to find all rasters that spatial relate with the relationship given to the polygon
     rasters = findRasters(poly, rasterLayer, relationship)
     # loop through each raster and clip them into the output folder
     for raster in rasters:
         clipByPoly(poly, raster, outdir)
 
-def createClipsPhotos(inFeatureOrderNumber,inFeature=r'J:\GIS_Data\HIGCore\Orders.gdb\siteLn',rasterLayer=r'C:\HIGCore\HIGCore.gdb\CountyMosaicImport', relationship='intersect', outdir=r'C:\temp\topoCrops'):
+def createClipsPhotos(inFeatureOrderNumber, scale=6000, inFeature=r'J:\GIS_Data\HIGCore\Orders.gdb\siteLn', rasterLayer=r'C:\HIGCore\HIGCore.gdb\CountyMosaicImport', relationship='intersect', outdir=r'C:\temp\topoCrops'):
     """specialized function with the presets for photos"""
-    poly = createCropBoxTopo(inFeature, inFeatureOrderNumber,scale=6000)
+    if len(inFeatureOrderNumber) != 2:
+        poly = createCropBoxTopo(inFeature, inFeatureOrderNumber,scale=scale)
+    elif len(inFeatureOrderNumber) == 2:
+        mapDoc = MapDocument(scale=scale, centroid=inFeatureOrderNumber)
+        poly = mapDoc.createArcPolygon()
     rasters = findRasters(poly, rasterLayer, relationship)
     for raster in rasters:
-        clipByPoly(poly, raster, outdir)
+        clipByPoly(poly, raster[0], outdir)
 
-def createAllClipsPhotos(inFeatureOrderNumber):
+def createAllClipsPhotos(inFeatureOrderNumber, outdir=r'C:\temp\topoCrops',inFeature=r'J:\GIS_Data\HIGCore\Orders.gdb\sitePy'):
     """specialized function with the presets for the 3 photo layers that we usually use for jobs"""
     # notice that when we call this on county and project which are single frame we only are looking for photos that contain the crop polygon
-    createClipsPhotos(inFeatureOrderNumber, rasterLayer=r'C:\HIGCore\HIGCore.gdb\CountyAndProjectImport',relationship='contains')
+    createClipsPhotos(inFeatureOrderNumber, scale=30000, rasterLayer=r'C:\HIGCore\HIGCore.gdb\CountyAndProjectImport',relationship='contains',outdir=outdir,inFeature=inFeature)
     # we may need to look up image analyst commands so we can merge doqqs when we are on the edge 
-    createClipsPhotos(inFeatureOrderNumber, rasterLayer=r'C:\HIGCore\HIGCore.gdb\DOQQImport')
+    createClipsPhotos(inFeatureOrderNumber, scale=30000, rasterLayer=r'C:\HIGCore\HIGCore.gdb\DOQQImport',outdir=outdir,inFeature=inFeature)
     # with all the normal presets if does the county mosaics
-    createClipsPhotos(inFeatureOrderNumber)
+    createClipsPhotos(inFeatureOrderNumber, scale=30000, outdir=outdir,inFeature=inFeature)
 
 class LinearScale:
     """"""
@@ -308,7 +399,7 @@ class ScaleTwoDimensions(object):
 
 class MapDocument(ScaleTwoDimensions):
     """"""
-    def __init__(self, width=8, height=9, scale=6000, centroid=[0,0], spatialRef=None):
+    def __init__(self, width=8, height=9, scale=6000, centroid=[0, 0], spatialRef=None):
         """takes dimensions of a map document in inches, the scale, corner in localUtm, and spatialRef for that corner.
         this function creates a mike mommsen MapDocument, which should allow for some nice cropping options.
         the cornerType  starts with N|S|C for if the corner is north, south, or central.
