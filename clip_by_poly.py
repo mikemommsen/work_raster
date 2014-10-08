@@ -4,6 +4,7 @@
 import arcpy
 import os
 import sys
+# here is me making a change
 
 RASTERFORMATS = ['.tif', '.jp2', '.jpg', '.sid']#add more as they are needed - we could merge this list with the list from find world files.py
 
