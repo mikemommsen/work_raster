@@ -1,5 +1,5 @@
-{"scales":
-    {"topo": 24000,
+{"scales":{
+	"topo": 24000,
      "photo": {
      	"standard": 6000,
      	"ultimate": 2400
@@ -17,5 +17,10 @@
 		"polyline":"J:/GIS_Data/HIGCore/Orders.gdb/siteLn",
 		"point": "J:/GIS_Data/HIGCore/Orders.gdb/sitePt"
 	}
+},
+"output": {
+	"topoCrops": "C:/temp/topoCrops",
+	"client": "J:/Output",
+	"crops": "J:/Crops"
 }
 }
