@@ -10,26 +10,24 @@ INCHESPERMETER = 39.3701
 INCHESPERFOOT = 12
 QUARTER_MILE_IN_METERS = 402.336
 
-def findRasters(inFeature, targetLayer, relationship='intersect',fields=['Filename']):
+def spatialCursor(targetLayer, inFeature, relationship='intersect',fields=['Filename']):
     """takes a polygon layer and returns the values for the fields that relate with the inFeature"""
-    print True
     # make a feature layer so we can select be location
-    arcpy.MakeFeatureLayer_management(targetLayer, "TEMP_LAYER2")
+    arcpy.MakeFeatureLayer_management(targetLayer, "TEMP_LAYER")
     # do the select by location to find all raster layer footprints that overlap the inFeature
-    arcpy.SelectLayerByLocation_management("TEMP_LAYER2", relationship, inFeature)
+    arcpy.SelectLayerByLocation_management("TEMP_LAYER", relationship, inFeature)
     # start up a searchCursor so we can grab the filenames
-    cur = arcpy.da.SearchCursor("TEMP_LAYER2", fields)
+    cur = arcpy.da.SearchCursor("TEMP_LAYER", fields)
     # create a blank list
     mylist=[]
     # loop through each row of the table
     for r in cur:
-        print 'here'
         mylist.append(r)
     # clean up by doing some deletes
     if 'r' in vars().keys():
         del r
     del cur
-    arcpy.Delete_management("TEMP_LAYER2")
+    arcpy.Delete_management("TEMP_LAYER")
     # and return the list of filenames
     return mylist
 
