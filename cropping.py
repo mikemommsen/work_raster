@@ -10,6 +10,8 @@ INCHESPERMETER = 39.3701
 INCHESPERFOOT = 12
 QUARTER_MILE_IN_METERS = 402.336
 
+# add a coment
+
 def spatialCursor(targetLayer, inFeature, relationship='intersect',fields=['Filename']):
     """takes a polygon layer and returns the values for the fields that relate with the inFeature"""
     # make a feature layer so we can select be location
