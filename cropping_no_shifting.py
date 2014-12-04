@@ -75,6 +75,7 @@ INCHESPERMETER = 39.3701
 INCHESPERFOOT = 12
 QUARTER_MILE_IN_METERS = 402.336
 
+# double check this one i am pretty sure that we have a better one in cropping.py
 def findRasters(inFeature, targetLayer, relationship='intersect',fields=['Filename']):
     """takes a polygon layer and returns the values for the fields that relate with the inFeature"""
     print True
@@ -234,7 +235,6 @@ def mergePhotos(inlist, outPath, year, poly, scale, document=r"C:\Workspace\Topo
         print quad
         quadtext += basequadtext.format(state=state, quad=quad)
     mydict["quadname"].text = quadtext
-    
     if scale == '24k':
         mydict['minute'].text = mydict['minute'].text.format('7.5')
     elif scale == '62k':
@@ -660,13 +660,13 @@ class MapDocument(ScaleTwoDimensions):
         else:
             return poly
 
-def changeCorners(inPoint, mapwidth, mapheight, scale, inPointCorner, outPointCorner):
+def changeCorners(inPoint, mapwidth, mapheight, scale, inPointCorner):
     """"""
     # this does not work but should allow a user to put in any corner that they choose
-    surfacewidth = mapwidth * scale
-    surfaceheight = mapheight * scale
+    surfacewidth = mapwidth * scale / INCHESPERMETER
+    surfaceheight = mapheight * scale / INCHESPERMETER
     if inPointCorner == 'C':
-        pass
+        centroid = inPoint
     elif inPointCorner == 'NW':
         pass
     elif inPointCorner == 'NE':
