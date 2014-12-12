@@ -75,7 +75,6 @@ INCHESPERMETER = 39.3701
 INCHESPERFOOT = 12
 QUARTER_MILE_IN_METERS = 402.336
 
-# double check this one i am pretty sure that we have a better one in cropping.py
 def findRasters(inFeature, targetLayer, relationship='intersect',fields=['Filename']):
     """takes a polygon layer and returns the values for the fields that relate with the inFeature"""
     print True
@@ -147,10 +146,11 @@ def geomListToExtent(geomlist):
     # loop through each geometry and grab its extent
     for geom in geomlist:
         extents.append(geom.extent)
+        print geom.extent
     # is there a better way to get the min and max all at once?
     outextent.XMax = max(x.XMax for x in extents)
     outextent.XMin = min(x.XMin for x in extents)
-    outextent.YMax = max(x.YMax for x in extents)
+    outextent.YMax = max(x.YMax for x in extents if x.YMax != 0)
     outextent.YMin = min(x.YMin for x in extents)
     return outextent
 
@@ -162,7 +162,7 @@ def geomListToCentroid(geomlist):
     xCentroid = 0.5 * (extent.XMin + extent.XMax)
     yCentroid = 0.5 * (extent.YMin + extent.YMax)
     # and return it
-    return xCentroid, yCentroid
+    return yCentroid, xCentroid
 
 def extentToArcPolygon(extent):
     """takes an arcpy extent and creates an arcpy polygon"""
@@ -200,7 +200,7 @@ def findIntersecting(geomlist, otherLayer=r'C:\Workspace\topo_work\topos.gdb\top
     arcpy.Delete_management(intersectedGrid)
     return outlist
 
-def findOrder(orderNumber, queryField="Orders", buffer_dist=QUARTER_MILE_IN_METERS, inFeatures=[r'J:\GIS_Data\HIGCore\Orders.gdb\sitePy', r'J:\GIS_Data\HIGCore\Orders.gdb\sitePt', r'J:\GIS_Data\HIGCore\Orders.gdb\siteLn']):
+def findOrder(orderNumber, queryField="Orders", inFeatures=[r'J:\GIS_Data\HIGCore\Orders.gdb\sitePy', r'J:\GIS_Data\HIGCore\Orders.gdb\sitePt', r'J:\GIS_Data\HIGCore\Orders.gdb\siteLn']):
     """this function takes an order number and returns a python list of all of the shapes that we have for it"""
     # create a blank list
     outlist = []
@@ -217,11 +217,23 @@ def grabYearTopo(topoPath):
     pattern = r'[0-9]{4}'
     return re.search(pattern, topoPath).group()
 
-def mergePhotos(inlist, outPath, year, poly, scale, document=r"C:\Workspace\Topo_work\topoMerger.mxd", site=False):
+def addImageToMxd(raster, mxdpath):
+    """"""
+    mxd = arcpy.mapping.MapDocument(mxdpath)
+    df = arcpy.mapping.ListDataFrames(mxd, 'Layers')[0]
+    name = os.path.split(raster)[1][:-4]
+    templayer = arcpy.MakeRasterLayer_management(raster, name)
+    layerondisk=arcpy.SaveToLayerFile_management(templayer, r'C:\temp\temp{}.lyr'.format(name))
+    a=arcpy.mapping.Layer(r'C:\temp\temp{}.lyr'.format(name))
+    arcpy.mapping.AddLayer(df,a,'AUTO_ARRANGE')
+
+def mergePhotos(orderNumber, inlist, outPath, year, poly, scale, document=r"C:\Workspace\Topo_work\topoMerger.mxd", site=False):
     """"""
     outname = os.path.join(outPath, '{0}_{1}.jpg'.format(year, scale))
     mxd = arcpy.mapping.MapDocument(document)
     df = arcpy.mapping.ListDataFrames(mxd, 'Layers')[0]
+    tester = arcpy.mapping.ListLayers(df, 'tester')[0]
+    tester.definitionQuery = "Orders = '{}'".format(orderNumber)
     ### change some text around
     mydict = {x.name: x for x in arcpy.mapping.ListLayoutElements(mxd)}
     mydict['year'].text = str(year)
@@ -242,11 +254,14 @@ def mergePhotos(inlist, outPath, year, poly, scale, document=r"C:\Workspace\Topo
     else:
         print 'wrong scale bitch'
     print 'here'
+    layerlist = []
     for i, raster in enumerate(inlist):
         name = os.path.split(raster)[1][:-4]
         templayer = arcpy.MakeRasterLayer_management(raster, name)
         layerondisk=arcpy.SaveToLayerFile_management(templayer, r'C:\temp\temp{}.lyr'.format(name))
         a=arcpy.mapping.Layer(r'C:\temp\temp{}.lyr'.format(name))
+        layerlist.append(a)
+        layerlist.append(templayer)
         print templayer, layerondisk, a
         arcpy.mapping.AddLayer(df,a,'AUTO_ARRANGE')
     df.displayUnits = "inches"
@@ -264,15 +279,45 @@ def mergePhotos(inlist, outPath, year, poly, scale, document=r"C:\Workspace\Topo
     #df.elementWidth = 8
     df.spatialReference = poly.spatialReference
     df.extent = poly.extent
-    arcpy.mapping.ExportToPDF(mxd, outname, resolution=300,image_compression='JPEG')#df,df_export_width=2400,df_export_height=2700,resolution=300 )
-##    for raster in inlist:
-##        name = os.path.split(raster)[1][:-4]
-##        #arcpy.mapping.RemoveLayer(df, name)
-##        arcpy.Delete_management(r'C:\temp\temp{}.lyr'.format(name))
-##        outdir = os.path.split(raster)[0]
-##        mylist=(os.path.join(outdir, x) for x in os.listdir(outdir) if os.path.splitext(x)[0] == name)
-##        for i in mylist:
-##            os.remove(i)
+    arcpy.mapping.ExportToPDF(mxd, outname, resolution=300,image_compression='JPEG')
+    for i in layerlist:
+        del i
+    for raster in inlist:
+        outdir = os.path.split(raster)[0]
+        mylist=(os.path.join(outdir, x) for x in os.listdir(outdir) if os.path.splitext(x)[0] == name)
+        ##for i in mylist:
+        ##    os.remove(i)
+        name = os.path.split(raster)[1][:-4]
+        #arcpy.mapping.RemoveLayer(df, name)
+        arcpy.Delete_management(r'C:\temp\temp{}.lyr'.format(name))
+
+def unionExtents(extentlist):
+    """"""
+    XMin = min(x.XMin for x in extentlist)
+    YMin = min(x.YMin for x in extentlist)
+    XMax = max(x.XMax for x in extentlist)
+    YMax = max(x.YMax for x in extentlist)
+    return arcpy.Extent(XMax=XMax, YMax=YMax, XMin=XMin, YMin=YMin)
+
+def extentToCentroid(inextent):
+    """takes an extent and returns the middle of the extent"""
+    if type(inextent) in (list, tuple):
+        extents = [x.extent for x in inextent]
+        XMin = min(x.XMin for x in extents)
+        YMin = min(x.YMin for x in extents)
+        XMax = max(x.XMax for x in extents)
+        YMax = max(x.YMax for x in extents)
+    lon = sum((inextent.XMax, inextent.XMin)) / 2
+    lat = sum((inextent.YMax, inextent.YMin)) / 2
+    return lat, lon
+
+def cleanUp():
+    """basic function that goes into the crop folders and deletes everything in them to speed up the process and help this become automated"""
+    folders = ['24k','24knew', '62k']
+    for folder in (os.path.join(r'C:\temp\topoCrops', x) for x in folders):
+        allfiles = os.listdir(folder)
+        for f in (os.path.join(r'C:\temp\topoCrops', folder, x) for x in allfiles):
+            os.remove(f)
 
 def mergePhotosNoText(inlist, outPath, year, poly, scale, document=r"C:\Workspace\Topo_work\mopoMerger_minimalist.mxd", site=True):
     """"""
@@ -305,7 +350,6 @@ def mergePhotosNoText(inlist, outPath, year, poly, scale, document=r"C:\Workspac
         templayer = arcpy.MakeRasterLayer_management(raster, name)
         layerondisk=arcpy.SaveToLayerFile_management(templayer, r'C:\temp\temp{}.lyr'.format(name))
         a=arcpy.mapping.Layer(r'C:\temp\temp{}.lyr'.format(name))
-        print templayer, layerondisk, a
         arcpy.mapping.AddLayer(df,a,'AUTO_ARRANGE')
     df.displayUnits = "inches"
     #templayer = arcpy.MakeFeatureLayer_management(r'C:\temp2\temp_feature.shp',"test")
@@ -323,7 +367,6 @@ def mergePhotosNoText(inlist, outPath, year, poly, scale, document=r"C:\Workspac
     #df.elementWidth = 8
     df.spatialReference = poly.spatialReference
     df.extent = poly.extent
-    
     arcpy.mapping.ExportToJPEG(mxd, outname, resolution=300)#df,df_export_width=2400,df_export_height=2700,resolution=300 )
 ##    for raster in inlist:
 ##        name = os.path.split(raster)[1][:-4]
@@ -334,28 +377,35 @@ def mergePhotosNoText(inlist, outPath, year, poly, scale, document=r"C:\Workspac
 ##        for i in mylist:
 ##            os.remove(i)
 
-def loadByYear(indir, poly, scale):
+def loadByYear(orderNumber, indir, poly, scale):
     """function that groups photos in the input directory by year and feeds them to the mergePhotos function"""
     rasters = sorted((os.path.join(indir, x) for x in os.listdir(indir) if x[-4:] in ['.tif', '.jpg']), key=grabYearTopo)
     for year, group in groupby(rasters, key=grabYearTopo):
-        mergePhotos(list(group),r'C:\temp', year, poly, scale)
+        mergePhotos(orderNumber, list(group),r'C:\temp', year, poly, scale)
+        
 
-def selectTopos(orderNumber, inFeature=r'J:\GIS_Data\HIGCore\Orders.gdb\sitePy', outdir=r'C:\temp\topoCrops', topoImport=r'C:\Workspace\topo_work\topos.gdb\topos_7point5_minute_spatialjoin',grid=r'C:\Workspace\topo_work\topos.gdb\eighth_degree_grid', shift=True):
-    """takes an infeature and uses a 7.5 minute grid to return the topos that should be used.
-    if the Feature is close to the edge is a grid it will use shiftExtents to shift it close to the edge"""
+def selectTopos(orderNumber, outdir=r'C:\temp\topoCrops', topoImport=r'C:\Workspace\topo_work\topos.gdb\topos_7point5_minute_spatialjoin',grid=r'C:\Workspace\topo_work\topos.gdb\eighth_degree_grid', shift=True):
+    """takes an infeature and uses a 7.5 minute grid to return the topos that should be used."""
     # make the basic cropBox
     # if it has a length of two we assume it is a lat lon pair and create our geom for that
-    if len(orderNumber)== 2 and type(orderNumber) != str:
+    if len(orderNumber) == 2 and type(orderNumber) != str:
         mapDoc = MapDocument(scale=24000, centroid=orderNumber)
         poly = mapDoc.createArcPolygon()
         inFeature = arcpy.PointGeometry(arcpy.Point(X=orderNumber[1],Y=orderNumber[0]), wgs84)
     # otherwise it is probably an order number
     # maybe we should assert that it starts with a 1, has a length between 7 and 8, is a string, or something else
-    elif type(orderNumber) == str and 5 < len(orderNumber) < 8: 
-        mapDoc = createCropBoxTopo(inFeature, orderNumber)
+    elif type(orderNumber) == str and 5 < len(orderNumber) < 8:
+        geom = findOrder(orderNumber)
+        geomExtent = unionExtents([x.extent for x in geom])
+        centroid = extentToCentroid(geomExtent)
+        mapDoc = MapDocument(scale=24000, centroid=centroid)
+        geomExtentGeom = extentToArcPolygon(geomExtent).projectAs(mapDoc.spatialRef).extent
+        if mapDoc.meterwidth < geomExtentGeom.width or mapDoc.meterheight < geomExtentGeom.height:
+            print 'this site is oversized'
+            sys.exit(0)
         poly = mapDoc.createArcPolygon()
-        # select the input feature and save it as a variable
-        inFeature = arcpy.Select_analysis(inFeature, arcpy.Geometry(), """ "Orders"= '{}' """.format(orderNumber))[0]
+        # careful this is a list and should not be
+        inFeature = geom
     # buffer that feature by one quarter mile
     else:
         print 'there is a problem here: cant recognize order number'
@@ -395,23 +445,27 @@ def selectTopos(orderNumber, inFeature=r'J:\GIS_Data\HIGCore\Orders.gdb\sitePy',
     # delete the temp files
     # some of these can be handled as variables which might save some time, code, and effort
     arcpy.Delete_management(intersectedGrid)
-    # arcpy.Delete_management(buffered)
-    # arcpy.Delete_management(inFeature)
     return poly
 
 def cropBothScales(orderNumber,inFeature=r'J:\GIS_Data\HIGCore\Orders.gdb\sitePy', outdir=r'C:\temp\topoCrops'):
     """calls selectTopos on both 7.5 and 15 minute scales"""
     # with the presets it works on the 7.5 minute grid
-    dir24= os.path.join(outdir, '24k')
-    dir62= os.path.join(outdir, '62k')
+    dir24 = os.path.join(outdir, '24k')
+    dir62 = os.path.join(outdir, '62k')
     dir24new = os.path.join(outdir, '24knew')
-    poly = selectTopos(orderNumber, inFeature=inFeature, outdir=dir24, topoImport=r'C:\Workspace\topo_work\topos.gdb\nad_27_eigth_degree_spatialjoin_oldstuff_v2', grid=r'C:\Workspace\topo_work\topos.gdb\nad_27_eigth_degree_grid_v2')
-    loadByYear(dir24, poly,'24k')
-    poly = selectTopos(orderNumber, topoImport=r'C:\Workspace\topo_work\topos.gdb\nad_27_quarter_degree_spatialjoin_v2', grid=r'C:\Workspace\topo_work\topos.gdb\nad_27_quarter_degree_grid_v2', inFeature=inFeature, outdir=dir62)
-    loadByYear(dir62, poly,'62k')
-    poly = selectTopos(orderNumber, topoImport=r'C:\Workspace\topo_work\topos.gdb\NAD83_newtopos_eigth_degree_spatialjoin', grid=r'C:\Workspace\topo_work\topos.gdb\eighth_degree_grid', inFeature=inFeature, outdir=dir24new, shift=False)
-    loadByYear(dir24new, poly,'24k')
-    
+    poly = selectTopos(orderNumber, outdir=dir24, topoImport=r'C:\Workspace\topo_work\topos.gdb\nad_27_eigth_degree_spatialjoin_oldstuff_v2', grid=r'C:\Workspace\topo_work\topos.gdb\nad_27_eigth_degree_grid_v2')
+    loadByYear(orderNumber, dir24, poly,'24k')
+    poly = selectTopos(orderNumber, topoImport=r'C:\Workspace\topo_work\topos.gdb\nad_27_quarter_degree_spatialjoin_v2', grid=r'C:\Workspace\topo_work\topos.gdb\nad_27_quarter_degree_grid_v2', outdir=dir62)
+    loadByYear(orderNumber, dir62, poly,'62k')
+    poly = selectTopos(orderNumber, topoImport=r'C:\Workspace\topo_work\topos.gdb\NAD83_newtopos_eigth_degree_spatialjoin', grid=r'C:\Workspace\topo_work\topos.gdb\eighth_degree_grid', outdir=dir24new, shift=False)
+    loadByYear(orderNumber, dir24new, poly,'24k')
+    cleanUp()
+
+
+#######
+## we need to clean this up
+## a lot of stuff in here is not needed because of the changes that we have made to the cropping process
+## this could be quite short actually
 def clipByPoly(inPoly, inraster, outdir, topo=False):
     """takes a polygon and clips the inraster to its extent and places output in the outdir"""
     # get the raster description
@@ -660,13 +714,13 @@ class MapDocument(ScaleTwoDimensions):
         else:
             return poly
 
-def changeCorners(inPoint, mapwidth, mapheight, scale, inPointCorner):
+def changeCorners(inPoint, mapwidth, mapheight, scale, inPointCorner, outPointCorner):
     """"""
     # this does not work but should allow a user to put in any corner that they choose
-    surfacewidth = mapwidth * scale / INCHESPERMETER
-    surfaceheight = mapheight * scale / INCHESPERMETER
+    surfacewidth = mapwidth * scale
+    surfaceheight = mapheight * scale
     if inPointCorner == 'C':
-        centroid = inPoint
+        pass
     elif inPointCorner == 'NW':
         pass
     elif inPointCorner == 'NE':
