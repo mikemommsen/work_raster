@@ -88,6 +88,7 @@ class UsgsSingleFrame(SingleFrame):
     """"""
 
     def __init__(self, fullpath):
+    	""""""
         SingleFrame.__init__(self, fullpath)
         self.urltemplate = URLTEMPLATE
 
