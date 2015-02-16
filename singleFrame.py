@@ -65,6 +65,7 @@ class CountyMosaic(Photo):
 		"""
 		returns a list of datetime objects for photos intersect the geometry
 
+
 		parameters
 		----------
 		geometry - arcpy.geometry object
