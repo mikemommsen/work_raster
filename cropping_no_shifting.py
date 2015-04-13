@@ -660,15 +660,13 @@ class MapDocument(ScaleTwoDimensions):
         else:
             return poly
 
-def changeCorners(inPoint, mapwidth, mapheight, scale, inPointCorner):
+def changeCorners(inPoint, mapwidth, mapheight, scale, inPointCorner, spref):
     """"""
     # this does not work but should allow a user to put in any corner that they choose
     surfacewidth = mapwidth * scale / INCHESPERMETER
     surfaceheight = mapheight * scale / INCHESPERMETER
-    if inPointCorner == 'C':
-        centroid = inPoint
-    elif inPointCorner == 'NW':
-        pass
+    if inPointCorner == 'NW':
+        centroid
     elif inPointCorner == 'NE':
         pass
     elif inPointCorner == 'SE':

@@ -1,2 +1,37 @@
+{
+"scales": {
+	"topo": {
+		"standard": 24000,
+		"fifteenminute": 62500
+	},
+    "photo": {
+     	"mediumres": 9600,
+     	"standard": 6000,
+     	"ultimate": 2400
+        }
+    },
+"page": {
+	"standard":[8, 9],
+	"tall": [10, 15],
+	"wide": [15, 10]
 
-
+	},
+"layer": {
+	"imagery": {
+		"countymosaic":"C:/HIGCore/HIGCore.gdb/CountyAndProjectImport",
+		"countyproject":"C:/HIGCore/HIGCore.gdb/CountyAndProjectImport",
+		"doqq":"C:/HIGCore/HIGCore.gdb/DOQQImport",
+		"topo": "C:/HIGCore/HIGCore.gdb/TopoImport"
+	    },
+    "orders": {
+	    "polygon":"J:/GIS_Data/HIGCore/Orders.gdb/sitePy",
+	    "polyline":"J:/GIS_Data/HIGCore/Orders.gdb/siteLn",
+	    "point": "J:/GIS_Data/HIGCore/Orders.gdb/sitePt"
+	    }
+    },
+"output": {
+	"topoCrops": "C:/temp/topoCrops",
+	"client": "J:/Output/{client}/{orderNumber}",
+	"crops": "J:/Crops/{orderNumber}"
+    }
+}
